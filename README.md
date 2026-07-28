@@ -30,12 +30,21 @@ cp .env.example .env   # BOT_TOKEN va DATABASE_URL ni to'ldiring
 python -m bot.main
 ```
 
+## Ma'lumot yig'ish (Railway DATABASE_URL tayyor bo'lgach)
+
+```bash
+python -m scraper.manba_yigish vaqtlar --yil 2026 --toplam xorazm
+python -m scraper.manba_yigish suralar
+```
+
 ## Bosqichlar
 
-0. Tayyorgarlik — Railway, GitHub, bot token (**joriy bosqich**)
-1. Ma'lumot poydevori — scraper, baza, Xorazm 6 shahri
+0. ✅ Tayyorgarlik — GitHub, bot token (@Etihat_bot). Railway hali kutilmoqda
+1. 🔄 Ma'lumot poydevori — scraper va baza modellari tayyor, Railway ulanishi kutilmoqda (**joriy bosqich**)
 2. Bot yadrosi — /start, /vaqt, shahar tanlash
 3. Bildirishnoma — APScheduler, standart 1 ta eslatma/kun
 4. Mini App — FastAPI + React ulash
 5. Rejimlar — Juma, Ramazon, Hayit, qasr, qazo
 6. Test va chiqarish
+
+To'liq texnik topshiriq: [`docs/TZ.md`](docs/TZ.md)
