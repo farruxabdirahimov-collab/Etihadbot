@@ -143,3 +143,4 @@ async def vaqtlarni_yig(dsn: str, yil: int, shaharlar: list):
     await pool.close()
     print(f"\n═══ Jami {jami} kun · manba: {MANBA_NOMI} ═══")
     print(f"    {MANBA_IZOHI}")
+    return jami

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     database_url: str = ""
     miniapp_url: str = ""
     timezone: str = "Asia/Tashkent"
+    admin_id: int = 0  # Telegram user ID — faqat shu foydalanuvchi /yigish_* buyruqlarini ishlata oladi
 
 
 settings = Settings()

@@ -103,3 +103,4 @@ async def suralarni_yukla(dsn: str, chiqish: Path):
     print(f"\n═══ {len(yigilgan)} sura saqlandi → {chiqish} ═══")
     print("    DIQQAT: matnni bosma mushaf bilan solishtirib chiqing,")
     print("    so'ngra bazada tasdiqlangan = TRUE qilib belgilang.")
+    return len(yigilgan)
