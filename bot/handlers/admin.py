@@ -2,7 +2,7 @@ from datetime import date
 from pathlib import Path
 
 from aiogram import Router
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from bot.config import settings
@@ -12,21 +12,68 @@ from scraper.vaqtlar import vaqtlarni_yig
 
 router = Router()
 
+# Bir vaqtda faqat bitta yig'ish jarayoni ishlasin — tugmani bir necha
+# marta bosib yuborilsa ham, ikkinchi jarayon boshlanmaydi.
+_band = False
+
 
 def _admin_mi(message: Message) -> bool:
     return bool(settings.admin_id) and message.from_user is not None and message.from_user.id == settings.admin_id
 
 
+async def _bandmi(message: Message) -> bool:
+    if _band:
+        await message.answer("⏳ Boshqa yig'ish jarayoni hali tugamadi. Iltimos, natija kelguncha kuting.")
+        return True
+    return False
+
+
+def _hisobot_matni(hisobot: dict) -> str:
+    muammoli = {slug: xs for slug, xs in hisobot.items() if xs}
+    if not muammoli:
+        return ""
+    qatorlar = [f"{slug}: {len(xs)} ta muammo — {xs[0]}" for slug, xs in muammoli.items()]
+    return "\n\n⚠ Muammoli shaharlar:\n" + "\n".join(qatorlar)
+
+
 @router.message(Command("yigish_vaqtlar"))
 async def yigish_vaqtlar(message: Message) -> None:
-    if not _admin_mi(message):
+    global _band
+    if not _admin_mi(message) or await _bandmi(message):
         return
     await message.answer("Xorazm (6 shahar) uchun yillik jadval yig'ish boshlandi. Bir necha daqiqa davom etadi...")
+    _band = True
     try:
-        jami = await vaqtlarni_yig(settings.database_url, date.today().year, XORAZM)
-        await message.answer(f"✓ Tayyor: {jami} kun bazaga saqlandi.")
+        jami, hisobot = await vaqtlarni_yig(settings.database_url, date.today().year, XORAZM)
+        await message.answer(f"✓ Tayyor: {jami} kun bazaga saqlandi.{_hisobot_matni(hisobot)}")
     except Exception as x:
         await message.answer(f"✗ Xato: {x}")
+    finally:
+        _band = False
+
+
+@router.message(Command("yigish_shahar"))
+async def yigish_shahar(message: Message, command: CommandObject) -> None:
+    global _band
+    if not _admin_mi(message) or await _bandmi(message):
+        return
+    slug = (command.args or "").strip().lower()
+    if not slug:
+        await message.answer("Foydalanish: /yigish_shahar hazorasp")
+        return
+    await message.answer(f"«{slug}» uchun qayta yig'ish boshlandi...")
+    _band = True
+    try:
+        jami, hisobot = await vaqtlarni_yig(settings.database_url, date.today().year, [slug])
+        muammolar = hisobot.get(slug) or []
+        matn = f"✓ Tayyor: {jami} kun saqlandi."
+        if muammolar:
+            matn += "\n\n⚠ Muammolar:\n" + "\n".join(muammolar)
+        await message.answer(matn)
+    except Exception as x:
+        await message.answer(f"✗ Xato: {x}")
+    finally:
+        _band = False
 
 
 @router.message(Command("tekshir"))
@@ -54,9 +101,11 @@ async def tekshir(message: Message) -> None:
 
 @router.message(Command("yigish_suralar"))
 async def yigish_suralar(message: Message) -> None:
-    if not _admin_mi(message):
+    global _band
+    if not _admin_mi(message) or await _bandmi(message):
         return
     await message.answer("Qisqa suralarni alquran.cloud dan yuklash boshlandi...")
+    _band = True
     try:
         soni = await suralarni_yukla(settings.database_url, Path("suralar.json"))
         await message.answer(
@@ -66,3 +115,5 @@ async def yigish_suralar(message: Message) -> None:
         )
     except Exception as x:
         await message.answer(f"✗ Xato: {x}")
+    finally:
+        _band = False

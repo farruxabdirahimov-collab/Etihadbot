@@ -56,21 +56,29 @@ def oylik_jadval_ajrat(html: str):
 
 
 async def shahar_yili(mijoz: httpx.AsyncClient, slug: str, yil: int):
-    """Bitta shahar uchun 12 oylik ma'lumotni yig'adi."""
+    """Bitta shahar uchun 12 oylik ma'lumotni yig'adi.
+
+    Ikkinchi qaytariladigan qiymat — muvaffaqiyatsiz oylar ro'yxati,
+    admin buyrug'i orqali Telegram'da ko'rsatish uchun."""
     barchasi = []
+    muammolar = []
     for oy in range(1, 13):
         url = f"{ASOS}/oylik/{oy}/{slug}"
         try:
             javob = await mijoz.get(url)
             javob.raise_for_status()
         except httpx.HTTPError as x:
-            print(f"  ✗ {slug} {OYLAR[oy]}: {x}")
+            xabar = f"{OYLAR[oy]}: so'rov xatosi — {x}"
+            print(f"  ✗ {slug} {xabar}")
+            muammolar.append(xabar)
             await asyncio.sleep(PAUZA)
             continue
 
         kunlar = oylik_jadval_ajrat(javob.text)
         if not kunlar:
-            print(f"  ⚠ {slug} {OYLAR[oy]}: jadval topilmadi")
+            xabar = f"{OYLAR[oy]}: jadval topilmadi"
+            print(f"  ⚠ {slug} {xabar}")
+            muammolar.append(xabar)
         for k in kunlar:
             try:
                 k["sana"] = date(yil, oy, k["kun"])
@@ -81,7 +89,7 @@ async def shahar_yili(mijoz: httpx.AsyncClient, slug: str, yil: int):
         print(f"  · {slug} {OYLAR[oy]}: {len(kunlar)} kun")
         await asyncio.sleep(PAUZA)
 
-    return barchasi
+    return barchasi, muammolar
 
 
 async def shahar_yoz(pool, slug: str, nom: str):
@@ -137,16 +145,18 @@ async def vaqtlarni_yig(dsn: str, yil: int, shaharlar: list):
     }
 
     jami = 0
+    hisobot = {}
     async with httpx.AsyncClient(headers=sarlavhalar, timeout=30) as mijoz:
         for slug in shaharlar:
             print(f"\n▸ {slug}")
-            kunlar = await shahar_yili(mijoz, slug, yil)
+            kunlar, muammolar = await shahar_yili(mijoz, slug, yil)
             shahar_id = await shahar_yoz(pool, slug, slug.capitalize())
             n = await vaqtlar_yoz(pool, shahar_id, kunlar)
             jami += n
+            hisobot[slug] = muammolar
             print(f"  ✓ {n} kun saqlandi")
 
     await pool.close()
     print(f"\n═══ Jami {jami} kun · manba: {MANBA_NOMI} ═══")
     print(f"    {MANBA_IZOHI}")
-    return jami
+    return jami, hisobot
