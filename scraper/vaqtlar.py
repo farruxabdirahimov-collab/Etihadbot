@@ -1,6 +1,6 @@
 import asyncio
 import re
-from datetime import date
+from datetime import date, datetime, time
 
 import httpx
 from bs4 import BeautifulSoup
@@ -94,12 +94,18 @@ async def shahar_yoz(pool, slug: str, nom: str):
         )
 
 
+def _vaqt(hhmm: str) -> time:
+    """'07:02' kabi satrni Python time obyektiga aylantiradi — asyncpg
+    ::time ustuniga satr emas, aynan time obyektini kutadi."""
+    return datetime.strptime(hhmm, "%H:%M").time()
+
+
 async def vaqtlar_yoz(pool, shahar_id: int, kunlar: list):
     if not kunlar:
         return 0
     qatorlar = [
-        (shahar_id, k["sana"], k["bomdod"], k["quyosh"], k["peshin"],
-         k["asr"], k["shom"], k["xufton"], k["qamar"], MANBA_NOMI)
+        (shahar_id, k["sana"], _vaqt(k["bomdod"]), _vaqt(k["quyosh"]), _vaqt(k["peshin"]),
+         _vaqt(k["asr"]), _vaqt(k["shom"]), _vaqt(k["xufton"]), k["qamar"], MANBA_NOMI)
         for k in kunlar
     ]
     async with pool.acquire() as c:
