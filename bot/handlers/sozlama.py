@@ -2,9 +2,10 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
-from bot.keyboards import hudud_klaviaturasi, shahar_klaviaturasi
+from bot.keyboards import shahar_klaviaturasi, viloyat_klaviaturasi
 from bot.services.foydalanuvchi_xizmat import olish, shaharni_yangila
-from bot.services.shahar_xizmat import bittasi, hudud_boyicha
+from bot.services.shahar_xizmat import bittasi, sluglar_boyicha
+from bot.viloyatlar import VILOYAT_TARTIBI, VILOYATLAR
 
 router = Router()
 
@@ -19,20 +20,30 @@ async def sozlama_menyu(message: Message) -> None:
     shahar = await bittasi(foydalanuvchi.shahar_id) if foydalanuvchi.shahar_id else None
     matn = (
         f"Joriy shahar: {shahar.nom if shahar else 'tanlanmagan'}\n\n"
-        "Shaharni o'zgartirish uchun hududni tanlang:"
+        "Shaharni o'zgartirish uchun viloyatingizni tanlang:"
     )
-    await message.answer(matn, reply_markup=hudud_klaviaturasi(prefix="shudud"))
+    await message.answer(matn, reply_markup=viloyat_klaviaturasi(prefix="sviloyat"))
 
 
-@router.callback_query(F.data.startswith("shudud:"))
-async def sozlama_hudud(callback: CallbackQuery) -> None:
-    hudud = callback.data.split(":", 1)[1]
-    shaharlar = await hudud_boyicha(hudud)
+@router.callback_query(F.data.startswith("sviloyat:"))
+async def sozlama_viloyat(callback: CallbackQuery) -> None:
+    idx = int(callback.data.split(":", 1)[1])
+    viloyat_nomi = VILOYAT_TARTIBI[idx]
+    sluglar = VILOYATLAR[viloyat_nomi]
+    shaharlar = await sluglar_boyicha(sluglar)
+
     if not shaharlar:
-        await callback.answer("Bu hududda hozircha ma'lumot yo'q.", show_alert=True)
+        await callback.answer("Bu viloyatda hozircha ma'lumot yo'q.", show_alert=True)
         return
+
+    if len(shaharlar) == 1:
+        await shaharni_yangila(callback.from_user.id, shaharlar[0].id)
+        await callback.message.edit_text(f"✓ Shahar yangilandi: {shaharlar[0].nom}")
+        await callback.answer()
+        return
+
     await callback.message.edit_text(
-        "Yangi shahringizni tanlang:",
+        f"{viloyat_nomi} — aniq shahringizni tanlang:",
         reply_markup=shahar_klaviaturasi(shaharlar, prefix="sshahar"),
     )
     await callback.answer()

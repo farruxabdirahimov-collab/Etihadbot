@@ -3,10 +3,11 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from bot.keyboards import MAQSADLAR, hudud_klaviaturasi, maqsad_klaviaturasi, shahar_klaviaturasi
+from bot.keyboards import MAQSADLAR, maqsad_klaviaturasi, shahar_klaviaturasi, viloyat_klaviaturasi
 from bot.services.foydalanuvchi_xizmat import olish, royxatga_ol
-from bot.services.shahar_xizmat import bittasi, hudud_boyicha
+from bot.services.shahar_xizmat import bittasi, sluglar_boyicha
 from bot.states import RoyxatState
+from bot.viloyatlar import VILOYAT_TARTIBI, VILOYATLAR
 
 router = Router()
 
@@ -45,24 +46,34 @@ async def handle_start(message: Message, state: FSMContext) -> None:
 async def maqsad_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
     maqsad = callback.data.split(":", 1)[1]
     await state.update_data(maqsad=maqsad)
-    await state.set_state(RoyxatState.hudud)
+    await state.set_state(RoyxatState.viloyat)
     await callback.message.edit_text(
-        f"✓ Tanlandi: {MAQSADLAR[maqsad]}\n\nEndi qaysi hududdasiz?",
-        reply_markup=hudud_klaviaturasi(),
+        f"✓ Tanlandi: {MAQSADLAR[maqsad]}\n\nEndi qaysi viloyatdasiz?",
+        reply_markup=viloyat_klaviaturasi(),
     )
     await callback.answer()
 
 
-@router.callback_query(RoyxatState.hudud, F.data.startswith("hudud:"))
-async def hudud_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
-    hudud = callback.data.split(":", 1)[1]
-    shaharlar = await hudud_boyicha(hudud)
+@router.callback_query(RoyxatState.viloyat, F.data.startswith("viloyat:"))
+async def viloyat_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
+    idx = int(callback.data.split(":", 1)[1])
+    viloyat_nomi = VILOYAT_TARTIBI[idx]
+    sluglar = VILOYATLAR[viloyat_nomi]
+    shaharlar = await sluglar_boyicha(sluglar)
+
     if not shaharlar:
-        await callback.answer("Bu hududda hozircha ma'lumot yo'q, boshqasini tanlang.", show_alert=True)
+        await callback.answer("Bu viloyatda hozircha ma'lumot yo'q, boshqasini tanlang.", show_alert=True)
         return
+
+    if len(shaharlar) == 1:
+        # Bitta shahar bo'lsa, qo'shimcha qadamsiz to'g'ridan-to'g'ri ro'yxatdan o'tkazamiz.
+        await _royxatni_yakunla(callback, state, shaharlar[0].id)
+        return
+
+    await state.update_data(viloyat=viloyat_nomi)
     await state.set_state(RoyxatState.shahar)
     await callback.message.edit_text(
-        "Endi aniq shahringizni tanlang — namoz vaqtlari shu bo'yicha hisoblanadi:",
+        f"{viloyat_nomi} — aniq shahringizni tanlang:",
         reply_markup=shahar_klaviaturasi(shaharlar),
     )
     await callback.answer()
@@ -71,6 +82,10 @@ async def hudud_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
 @router.callback_query(RoyxatState.shahar, F.data.startswith("shahar:"))
 async def shahar_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
     shahar_id = int(callback.data.split(":", 1)[1])
+    await _royxatni_yakunla(callback, state, shahar_id)
+
+
+async def _royxatni_yakunla(callback: CallbackQuery, state: FSMContext, shahar_id: int) -> None:
     malumot = await state.get_data()
     await royxatga_ol(callback.from_user.id, malumot["maqsad"], shahar_id)
     await state.clear()

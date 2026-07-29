@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.db.models import Shahar
+from bot.viloyatlar import VILOYAT_TARTIBI
 
 MAQSADLAR = {
     "organish": "📚 Namozni o'rganish",
@@ -19,11 +20,12 @@ def maqsad_klaviaturasi() -> InlineKeyboardMarkup:
     return b.as_markup()
 
 
-def hudud_klaviaturasi(prefix: str = "hudud") -> InlineKeyboardMarkup:
+def viloyat_klaviaturasi(prefix: str = "viloyat") -> InlineKeyboardMarkup:
+    """Barcha viloyatlarni teng huquqli, alifbo emas — bir xil formatda ko'rsatadi."""
     b = InlineKeyboardBuilder()
-    b.button(text="🕌 Xorazm viloyati", callback_data=f"{prefix}:xorazm")
-    b.button(text="🏙 Boshqa yirik shaharlar", callback_data=f"{prefix}:yirik")
-    b.adjust(1)
+    for i, nom in enumerate(VILOYAT_TARTIBI):
+        b.button(text=nom, callback_data=f"{prefix}:{i}")
+    b.adjust(2)
     return b.as_markup()
 
 

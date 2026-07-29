@@ -3,7 +3,6 @@ from sqlalchemy import select
 from bot.db.connection import async_session
 from bot.db.models import NamozVaqti, Shahar
 from bot.services.vaqt_xizmat import hozir
-from scraper.sozlamalar import XORAZM, YIRIK_SHAHARLAR
 
 
 async def mavjud_shaharlar() -> list[Shahar]:
@@ -20,11 +19,10 @@ async def mavjud_shaharlar() -> list[Shahar]:
         return list(natija.scalars().all())
 
 
-async def hudud_boyicha(hudud: str) -> list[Shahar]:
-    """'xorazm' yoki 'yirik' hududiga tegishli, bugungi ma'lumoti bor shaharlar."""
-    slug_royxati = XORAZM if hudud == "xorazm" else YIRIK_SHAHARLAR
+async def sluglar_boyicha(sluglar: list[str]) -> list[Shahar]:
+    """Berilgan slug ro'yxatiga tegishli, bugungi ma'lumoti bor shaharlar."""
     barchasi = await mavjud_shaharlar()
-    return [sh for sh in barchasi if sh.slug in slug_royxati]
+    return [sh for sh in barchasi if sh.slug in sluglar]
 
 
 async def bittasi(shahar_id: int) -> Shahar | None:
