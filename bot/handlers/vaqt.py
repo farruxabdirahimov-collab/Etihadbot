@@ -1,12 +1,20 @@
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 
+from bot.config import settings
 from bot.services.foydalanuvchi_xizmat import olish
 from bot.services.shahar_xizmat import bittasi
 from bot.services.vaqt_xizmat import NOM_KORSATISH, joriy_holat
 
 router = Router()
+
+
+def _ilova_klaviaturasi() -> InlineKeyboardMarkup | None:
+    if not settings.miniapp_url:
+        return None
+    tugma = InlineKeyboardButton(text="📱 Ilovani ochish", web_app=WebAppInfo(url=settings.miniapp_url))
+    return InlineKeyboardMarkup(inline_keyboard=[[tugma]])
 
 
 def _qolgan_matni(qolgan) -> str:
@@ -52,4 +60,4 @@ async def vaqt_korsat(message: Message) -> None:
     qatorlar.append(
         "Namoz vaqtlari manbasi: namozvaqti.uz — «Book Media Nashr» taqvim kitobi asosida"
     )
-    await message.answer("\n".join(qatorlar))
+    await message.answer("\n".join(qatorlar), reply_markup=_ilova_klaviaturasi())

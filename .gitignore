@@ -8,3 +8,8 @@ dist/
 build/
 *.log
 .DS_Store
+
+# Mini App'ning tayyor build'i backend orqali statik fayl sifatida
+# xizmat qilinadi — shuning uchun repoda saqlanadi.
+!miniapp/dist/
+!miniapp/dist/**
