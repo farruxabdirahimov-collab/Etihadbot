@@ -13,7 +13,7 @@ XORAZM = ["urganch", "xiva", "xonqa", "hazorasp", "shovot", "yangibozor"]
 YIRIK_SHAHARLAR = [
     "toshkent", "samarqand", "buxoro", "namangan", "andijon", "fargona",
     "qarshi", "nukus", "termiz", "jizzax", "navoiy", "guliston", "qoqon",
-    "margilon", "angren", "chirchiq", "olmaliq", "shahrisabz", "zarafshon",
+    "margilon", "angren", "chirchik", "olmaliq", "shahrisabz", "zarafshon",
 ]
 
 OYLAR = {
