@@ -1,35 +1,46 @@
 /** Rakat tuzilishi — umumiy, manbaga bog'liq bo'lmagan fiqhiy ma'lumot.
  * Zam sura tavsiyasi — sura RAQAMI orqali (nomi emas), API'dan kelgan
- * suralar ro'yxati bilan moslashtiriladi. */
+ * suralar ro'yxati bilan moslashtiriladi. `kalit` — vaqtlar obyektidagi
+ * ustun nomi (bomdod, peshin, ...) bilan bog'lash uchun. */
 export const NAMOZLAR = [
   {
-    nom: "Bomdod", arab: "الفجر",
+    kalit: "bomdod", nom: "Bomdod", arab: "الفجر",
     rakat: [{ turi: "sunnat", soni: 2 }, { turi: "farz", soni: 2 }],
     sura: { boshlangich: 112, orta: 108, murakkab: 97 },
   },
   {
-    nom: "Peshin", arab: "الظهر",
+    kalit: "peshin", nom: "Peshin", arab: "الظهر",
     rakat: [{ turi: "sunnat", soni: 4 }, { turi: "farz", soni: 4 }, { turi: "sunnat", soni: 2 }],
     sura: { boshlangich: 113, orta: 110, murakkab: 105 },
   },
   {
-    nom: "Asr", arab: "العصر",
+    kalit: "asr", nom: "Asr", arab: "العصر",
     rakat: [{ turi: "sunnat", soni: 4 }, { turi: "farz", soni: 4 }],
     sura: { boshlangich: 114, orta: 107, murakkab: 106 },
   },
   {
-    nom: "Shom", arab: "المغرب",
+    kalit: "shom", nom: "Shom", arab: "المغرب",
     rakat: [{ turi: "farz", soni: 3 }, { turi: "sunnat", soni: 2 }],
     sura: { boshlangich: 112, orta: 103, murakkab: 104 },
   },
   {
-    nom: "Xufton", arab: "العشاء",
+    kalit: "xufton", nom: "Xufton", arab: "العشاء",
     rakat: [{ turi: "sunnat", soni: 4 }, { turi: "farz", soni: 4 }, { turi: "sunnat", soni: 2 }, { turi: "vitr", soni: 3 }],
     sura: { boshlangich: 108, orta: 102, murakkab: 101 },
   },
 ];
 
+export function namozniTop(kalit) {
+  return NAMOZLAR.find((n) => n.kalit === kalit) ?? null;
+}
+
 export const NAMOZ_TARTIBI = ["bomdod", "peshin", "asr", "shom", "xufton"];
+
+// Quyosh NAMOZLAR ro'yxatida yo'q (farz namoz emas) — chegara nomi
+// sifatida ko'rsatish uchun alohida xarita.
+export const NOM_KORSATISH = {
+  bomdod: "Bomdod", quyosh: "Quyosh", peshin: "Peshin", asr: "Asr", shom: "Shom", xufton: "Xufton",
+};
 
 export const DARAJA_NOM = { boshlangich: "Boshlang'ich", orta: "O'rta", murakkab: "Murakkab" };
 

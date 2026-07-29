@@ -50,10 +50,16 @@ async def vaqt_korsat(message: Message) -> None:
         f"🌆 Shom: <b>{bugun.shom.strftime('%H:%M')}</b>",
         f"🌙 Xufton: <b>{bugun.xufton.strftime('%H:%M')}</b>",
     ]
-    if holat["keyingi_nom"]:
-        nom = NOM_KORSATISH[holat["keyingi_nom"]]
-        qatorlar.append("")
-        qatorlar.append(f"⏳ <b>{nom}</b> namozigacha: <b>{_qolgan_matni(holat['qolgan'])}</b>")
+    chegara = NOM_KORSATISH[holat["chegara_nom"]]
+    qatorlar.append("")
+    if holat["joriy_nom"]:
+        joriy = NOM_KORSATISH[holat["joriy_nom"]]
+        qatorlar.append(
+            f"🕐 <b>{joriy}</b> vaqti kirdi — <b>{chegara}</b>gacha "
+            f"<b>{_qolgan_matni(holat['qolgan'])}</b> bor"
+        )
+    elif holat["qolgan"] is not None:
+        qatorlar.append(f"⏳ <b>{chegara}</b> namozigacha: <b>{_qolgan_matni(holat['qolgan'])}</b>")
 
     qatorlar.append("")
     qatorlar.append(

@@ -4,7 +4,7 @@ import BoshEkran from "./components/BoshEkran.jsx";
 import QoidaOyna from "./components/QoidaOyna.jsx";
 import SuraOyna from "./components/SuraOyna.jsx";
 import SuraRoyxati from "./components/SuraRoyxati.jsx";
-import { keyingiNamozniHisobla, rangniAniqla } from "./hisoblash.js";
+import { joriyHolatniHisobla, rangniAniqla } from "./hisoblash.js";
 import { telegramniTayyorla } from "./telegram.js";
 import { UTIL } from "./theme.js";
 
@@ -49,8 +49,10 @@ export default function App() {
     setSuraTanlangan(toliq);
   }
 
-  const keyingiNamoz = vaqtlar ? keyingiNamozniHisobla(vaqtlar, hozir) : null;
-  const qolganSoniya = keyingiNamoz ? Math.max(0, Math.round((keyingiNamoz.vaqt - hozir) / 1000)) : null;
+  const svetoforHolati = vaqtlar ? joriyHolatniHisobla(vaqtlar, hozir) : null;
+  const qolganSoniya = svetoforHolati?.chegaraVaqt
+    ? Math.max(0, Math.round((svetoforHolati.chegaraVaqt - hozir) / 1000))
+    : null;
   const r = rangniAniqla(qolganSoniya);
 
   return (

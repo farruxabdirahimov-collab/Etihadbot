@@ -1,5 +1,5 @@
-import { NAMOZLAR } from "../data.js";
-import { keyingiNamozniHisobla, rangniAniqla } from "../hisoblash.js";
+import { NOM_KORSATISH, namozniTop } from "../data.js";
+import { joriyHolatniHisobla, rangniAniqla } from "../hisoblash.js";
 import { ARAB, DISPLAY, HALQA_RADIUS, HALQA_UZUNLIK, UTIL, ikki } from "../theme.js";
 
 function qolganMatni(soniya) {
@@ -9,15 +9,19 @@ function qolganMatni(soniya) {
 }
 
 export default function BoshEkran({ vaqtlar, hozir, daraja, suralar, ochRoyxat, ochQoida, ochSura }) {
-  const keyingiNamoz = keyingiNamozniHisobla(vaqtlar, hozir);
-  const qolganSoniya = keyingiNamoz ? Math.max(0, Math.round((keyingiNamoz.vaqt - hozir) / 1000)) : null;
-  const oynaSoniya = keyingiNamoz?.oldingiVaqt
-    ? Math.round((keyingiNamoz.vaqt - keyingiNamoz.oldingiVaqt) / 1000)
+  const holat = joriyHolatniHisobla(vaqtlar, hozir);
+  const qolganSoniya = holat?.chegaraVaqt ? Math.max(0, Math.round((holat.chegaraVaqt - hozir) / 1000)) : null;
+  const oynaSoniya = holat?.boshlanishi && holat?.chegaraVaqt
+    ? Math.max(1, Math.round((holat.chegaraVaqt - holat.boshlanishi) / 1000))
     : 40 * 60;
   const ulush = qolganSoniya === null ? 0 : Math.max(0, Math.min(1, qolganSoniya / oynaSoniya));
   const r = rangniAniqla(qolganSoniya);
 
-  const joriyNamoz = keyingiNamoz ? NAMOZLAR[keyingiNamoz.indeks] : null;
+  // Joriy namoz vaqti kirgan bo'lsa — o'sha namoz haqida (rakat, zam sura).
+  // Aks holda (oraliq yoki tong oldi) — kutilayotgan namoz nomi ko'rsatiladi,
+  // lekin rakat/zam sura hali vaqti kelmagani uchun ko'rsatilmaydi.
+  const joriyNamoz = holat?.joriyNom ? namozniTop(holat.joriyNom) : null;
+  const chegaraNamoz = holat?.chegaraNom ? namozniTop(holat.chegaraNom) : null;
   const tavsiyaRaqam = joriyNamoz?.sura?.[daraja];
   const tavsiyaSura = suralar.find((s) => s.raqam === tavsiyaRaqam);
 
@@ -45,16 +49,25 @@ export default function BoshEkran({ vaqtlar, hozir, daraja, suralar, ochRoyxat, 
             />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            {joriyNamoz ? (
+            {joriyNamoz && qolganSoniya !== null ? (
               <>
                 <p style={{ fontFamily: ARAB, fontSize: 19, color: r.xira, marginBottom: 2 }}>{joriyNamoz.arab}</p>
-                <p style={{ fontFamily: DISPLAY, fontSize: 25, color: r.matn, marginBottom: 8 }}>{joriyNamoz.nom}</p>
+                <p style={{ fontFamily: DISPLAY, fontSize: 22, color: r.matn, marginBottom: 8 }}>{joriyNamoz.nom} kirdi</p>
+                <p style={{ fontFamily: DISPLAY, fontSize: 46, color: r.urgu, lineHeight: 1 }}>{qolganMatni(qolganSoniya)}</p>
+                <p style={{ fontSize: 8.5, letterSpacing: ".2em", color: r.xira, marginTop: 8, textTransform: "uppercase" }}>
+                  {NOM_KORSATISH[holat.chegaraNom]}gacha
+                </p>
+              </>
+            ) : chegaraNamoz && qolganSoniya !== null ? (
+              <>
+                <p style={{ fontFamily: ARAB, fontSize: 19, color: r.xira, marginBottom: 2 }}>{chegaraNamoz.arab}</p>
+                <p style={{ fontFamily: DISPLAY, fontSize: 25, color: r.matn, marginBottom: 8 }}>{chegaraNamoz.nom}</p>
                 <p style={{ fontFamily: DISPLAY, fontSize: 50, color: r.urgu, lineHeight: 1 }}>{qolganMatni(qolganSoniya)}</p>
                 <p style={{ fontSize: 8.5, letterSpacing: ".2em", color: r.xira, marginTop: 8, textTransform: "uppercase" }}>qoldi</p>
               </>
             ) : (
               <p style={{ fontFamily: DISPLAY, fontSize: 20, color: r.matn, textAlign: "center", padding: "0 24px" }}>
-                Bugungi namozlar tugadi
+                Ma'lumot topilmadi
               </p>
             )}
           </div>

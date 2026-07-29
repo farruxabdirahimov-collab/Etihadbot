@@ -1,23 +1,44 @@
-import { NAMOZ_TARTIBI } from "./data.js";
 import { PALETTE } from "./theme.js";
 
-function bugungiVaqt(hozir, hhmm) {
+// Fiqh: har bir namoz o'z vaqti kirgandan keyingi chegara kirguncha
+// amal qiladi. Quyosh bilan Peshin orasida hech qaysi farz namozning
+// vaqti faol emas — bu holat joriyNom=null bilan ifodalanadi.
+const OYNALAR = [
+  [null, "bomdod"],
+  ["bomdod", "quyosh"],
+  [null, "peshin"],
+  ["peshin", "asr"],
+  ["asr", "shom"],
+  ["shom", "xufton"],
+  ["xufton", null],
+];
+
+function vaqtQur(hozir, hhmm, ertagami = false) {
   const [soat, daqiqa] = hhmm.split(":").map(Number);
-  return new Date(hozir.getFullYear(), hozir.getMonth(), hozir.getDate(), soat, daqiqa, 0);
+  const kun = new Date(hozir);
+  if (ertagami) kun.setDate(kun.getDate() + 1);
+  return new Date(kun.getFullYear(), kun.getMonth(), kun.getDate(), soat, daqiqa, 0);
 }
 
-/** Vaqtlar (bomdod..xufton) va hozirgi vaqt asosida keyingi namozni topadi. */
-export function keyingiNamozniHisobla(vaqtlar, hozir) {
+/** Hozir qaysi namozning vaqti ichidamiz (yoki keyingisi kutilmoqda)
+ * va shu oynaning tugash chegarasiga qancha qolganini hisoblaydi.
+ * `boshlanishi` — halqa progressini hisoblash uchun oyna boshlanish vaqti
+ * (agar ma'lum bo'lsa). */
+export function joriyHolatniHisobla(vaqtlar, hozir) {
   if (!vaqtlar) return null;
-  for (let i = 0; i < NAMOZ_TARTIBI.length; i++) {
-    const nom = NAMOZ_TARTIBI[i];
-    const toliqVaqt = bugungiVaqt(hozir, vaqtlar[nom]);
-    if (toliqVaqt > hozir) {
-      const oldingi = i > 0 ? bugungiVaqt(hozir, vaqtlar[NAMOZ_TARTIBI[i - 1]]) : null;
-      return { indeks: i, nom, vaqt: toliqVaqt, oldingiVaqt: oldingi };
+
+  for (const [joriyNom, chegaraNom] of OYNALAR) {
+    if (chegaraNom === null) {
+      const chegaraVaqt = vaqtlar.ertangi_bomdod ? vaqtQur(hozir, vaqtlar.ertangi_bomdod, true) : null;
+      return { joriyNom, chegaraNom: "bomdod", chegaraVaqt, boshlanishi: vaqtQur(hozir, vaqtlar.xufton) };
+    }
+    const chegaraVaqt = vaqtQur(hozir, vaqtlar[chegaraNom]);
+    if (chegaraVaqt > hozir) {
+      const boshlanishi = joriyNom ? vaqtQur(hozir, vaqtlar[joriyNom]) : null;
+      return { joriyNom, chegaraNom, chegaraVaqt, boshlanishi };
     }
   }
-  return null; // bugungi barcha namozlar o'tgan
+  return null;
 }
 
 export function rangniAniqla(qolganSoniya) {

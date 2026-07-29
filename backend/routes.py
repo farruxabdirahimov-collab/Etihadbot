@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 
@@ -11,12 +13,21 @@ router = APIRouter(prefix="/api")
 
 @router.get("/vaqtlar")
 async def vaqtlar(shahar_id: int = Query(...)) -> dict:
+    bugungi_sana = hozir().date()
     async with async_session() as s:
         shahar = await s.get(Shahar, shahar_id)
         natija = await s.execute(
-            select(NamozVaqti).where(NamozVaqti.shahar_id == shahar_id, NamozVaqti.sana == hozir().date())
+            select(NamozVaqti).where(NamozVaqti.shahar_id == shahar_id, NamozVaqti.sana == bugungi_sana)
         )
         bugun = natija.scalar_one_or_none()
+
+        # Xuftondan keyingi holatni hisoblash uchun ertangi Bomdod ham kerak.
+        natija2 = await s.execute(
+            select(NamozVaqti).where(
+                NamozVaqti.shahar_id == shahar_id, NamozVaqti.sana == bugungi_sana + timedelta(days=1)
+            )
+        )
+        ertaga = natija2.scalar_one_or_none()
 
     if not shahar or not bugun:
         return {"topildi": False}
@@ -30,6 +41,7 @@ async def vaqtlar(shahar_id: int = Query(...)) -> dict:
         "asr": bugun.asr.strftime("%H:%M"),
         "shom": bugun.shom.strftime("%H:%M"),
         "xufton": bugun.xufton.strftime("%H:%M"),
+        "ertangi_bomdod": ertaga.bomdod.strftime("%H:%M") if ertaga else None,
     }
 
 
