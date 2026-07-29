@@ -28,7 +28,7 @@ async def handle_start(message: Message, state: FSMContext) -> None:
             f"Assalomu alaykum! Siz allaqachon ro'yxatdan o'tgansiz — "
             f"shahringiz: {shahar.nom if shahar else '—'}.\n\n"
             "Bugungi namoz vaqtlari uchun /vaqt, sozlamalarni o'zgartirish uchun "
-            "/sozlama yuboring.\n\n"
+            "/sozlama, eslatmalarni sozlash uchun /bildirishnoma yuboring.\n\n"
             f"{MANBA_MATNI}"
         )
         return
@@ -94,6 +94,8 @@ async def _royxatni_yakunla(callback: CallbackQuery, state: FSMContext, shahar_i
     await callback.message.edit_text(
         f"✓ Ro'yxatdan o'tdingiz — shahar: {shahar.nom if shahar else '—'}.\n\n"
         "Bugungi namoz vaqtlari uchun /vaqt yuboring.\n\n"
+        "Sizga standart holatda kuniga 1 ta eslatma (Bomdod, 10 daqiqa oldin) "
+        "yoqilgan — buni /bildirishnoma orqali o'zgartirishingiz mumkin.\n\n"
         f"{MANBA_MATNI}"
     )
     await callback.answer()

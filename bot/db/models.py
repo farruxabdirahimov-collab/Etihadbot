@@ -67,6 +67,11 @@ class Foydalanuvchi(Base):
     daraja: Mapped[str] = mapped_column(String, default="boshlangich")  # boshlangich|orta|murakkab
     yaratilgan: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    # 3-bosqich: bildirishnoma sozlamalari. Standart — kuniga 1 ta eslatma (Bomdod, 10 daqiqa oldin).
+    eslatma_yoqilgan: Mapped[bool] = mapped_column(Boolean, default=True)
+    eslatma_namozlar: Mapped[str] = mapped_column(String, default="bomdod")  # vergul bilan: "bomdod,peshin"
+    eslatma_daqiqa: Mapped[int] = mapped_column(SmallInteger, default=10)
+
     shahar: Mapped[Shahar | None] = relationship()
 
 
