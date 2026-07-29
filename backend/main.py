@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="Namoz Bot Mini App API")
+app = FastAPI(title="Etihat — E'tiqod Mini App API")
 
 
 @app.get("/health")

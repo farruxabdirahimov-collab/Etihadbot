@@ -10,6 +10,8 @@ from bot.states import RoyxatState
 
 router = Router()
 
+BOT_NOMI = "Etihat — E'tiqod"
+
 MANBA_MATNI = (
     "Namoz vaqtlari manbasi: namozvaqti.uz — "
     "«Book Media Nashr» taqvim kitobi asosida"
@@ -32,8 +34,9 @@ async def handle_start(message: Message, state: FSMContext) -> None:
 
     await state.set_state(RoyxatState.maqsad)
     await message.answer(
-        "Assalomu alaykum! Namoz Bot'ga xush kelibsiz.\n\n"
-        "Botdan maqsadingiz nima?",
+        f"Assalomu alaykum va rohmatulloh!\n\n"
+        f"Namoz va uning vaqtlari haqidagi «{BOT_NOMI}» ilovasiga xush kelibsiz. 🌙\n\n"
+        "Sizga qulayroq bo'lishi uchun avval bitta savol: bizdan asosan nimani kutasiz?",
         reply_markup=maqsad_klaviaturasi(),
     )
 
@@ -44,7 +47,7 @@ async def maqsad_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(maqsad=maqsad)
     await state.set_state(RoyxatState.hudud)
     await callback.message.edit_text(
-        f"Tanlandi: {MAQSADLAR[maqsad]}\n\nEndi hududingizni tanlang:",
+        f"✓ Tanlandi: {MAQSADLAR[maqsad]}\n\nEndi qaysi hududdasiz?",
         reply_markup=hudud_klaviaturasi(),
     )
     await callback.answer()
@@ -58,7 +61,10 @@ async def hudud_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Bu hududda hozircha ma'lumot yo'q, boshqasini tanlang.", show_alert=True)
         return
     await state.set_state(RoyxatState.shahar)
-    await callback.message.edit_text("Shahringizni tanlang:", reply_markup=shahar_klaviaturasi(shaharlar))
+    await callback.message.edit_text(
+        "Endi aniq shahringizni tanlang — namoz vaqtlari shu bo'yicha hisoblanadi:",
+        reply_markup=shahar_klaviaturasi(shaharlar),
+    )
     await callback.answer()
 
 

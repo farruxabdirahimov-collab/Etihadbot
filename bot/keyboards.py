@@ -4,10 +4,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.db.models import Shahar
 
 MAQSADLAR = {
-    "organish": "📚 Faqat o'rganish",
-    "vaqt_organish": "🕌 Vaqt + o'rganish",
-    "vaqt": "⏰ Faqat vaqt",
-    "erkin": "🔍 Erkin ko'rish",
+    "organish": "📚 Namozni o'rganish",
+    "vaqt_organish": "🕌 Namoz vaqtlari va o'rganish",
+    "vaqt": "⏰ Faqat namoz vaqtlari",
+    "erkin": "🔍 Hammasidan bir oz (erkin)",
 }
 
 
@@ -21,8 +21,8 @@ def maqsad_klaviaturasi() -> InlineKeyboardMarkup:
 
 def hudud_klaviaturasi(prefix: str = "hudud") -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
-    b.button(text="Xorazm shaharlari", callback_data=f"{prefix}:xorazm")
-    b.button(text="Yirik shaharlar", callback_data=f"{prefix}:yirik")
+    b.button(text="🕌 Xorazm viloyati", callback_data=f"{prefix}:xorazm")
+    b.button(text="🏙 Boshqa yirik shaharlar", callback_data=f"{prefix}:yirik")
     b.adjust(1)
     return b.as_markup()
 
