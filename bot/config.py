@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     miniapp_url: str = ""
     timezone: str = "Asia/Tashkent"
     admin_id: int = 0  # Telegram user ID — faqat shu foydalanuvchi /yigish_* buyruqlarini ishlata oladi
+    port: int = 8000  # Railway PORT — Mini App backend shu portda tinglaydi
 
     @field_validator("database_url")
     @classmethod

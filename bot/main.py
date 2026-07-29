@@ -1,10 +1,12 @@
 import asyncio
 import logging
 
+import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
+from backend.main import app as fastapi_app
 from bot.config import settings
 from bot.db.connection import engine
 from bot.db.migratsiya import yangila
@@ -31,9 +33,15 @@ async def main() -> None:
 
     scheduler = await ishga_tushir(bot)
 
+    # Bot (polling) va Mini App backend (HTTP) bitta Railway servisida,
+    # bitta protsessda birga ishlaydi — alohida servis kerak emas.
+    server = uvicorn.Server(
+        uvicorn.Config(fastapi_app, host="0.0.0.0", port=settings.port, log_level="info")
+    )
+
     await bot.delete_webhook(drop_pending_updates=True)
     try:
-        await dp.start_polling(bot)
+        await asyncio.gather(dp.start_polling(bot), server.serve())
     finally:
         scheduler.shutdown()
 
