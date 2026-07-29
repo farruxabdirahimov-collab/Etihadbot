@@ -1,4 +1,4 @@
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
@@ -9,6 +9,7 @@ from bot.keyboards_eslatma import (
     eslatma_menyu_klaviaturasi,
     eslatma_namozlar_klaviaturasi,
 )
+from bot.services.eslatma_xizmat import bitta_foydalanuvchi_uchun_reja
 from bot.services.foydalanuvchi_xizmat import (
     eslatma_daqiqasini_belgila,
     eslatma_namozini_almashtir,
@@ -45,11 +46,12 @@ async def bildirishnoma_menyu(message: Message) -> None:
 
 
 @router.callback_query(F.data == "esl_yoq")
-async def esl_yoq(callback: CallbackQuery) -> None:
+async def esl_yoq(callback: CallbackQuery, bot: Bot) -> None:
     yoqilgan = await eslatmani_almashtir(callback.from_user.id)
     if yoqilgan is None:
         await callback.answer("Avval ro'yxatdan o'ting: /start", show_alert=True)
         return
+    await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
     foydalanuvchi = await olish(callback.from_user.id)
     await callback.message.edit_text(
         _holat_matni(foydalanuvchi), reply_markup=eslatma_menyu_klaviaturasi(yoqilgan)
@@ -69,9 +71,10 @@ async def esl_namoz_menyu(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith("esl_namoz:"))
-async def esl_namoz_tanlash(callback: CallbackQuery) -> None:
+async def esl_namoz_tanlash(callback: CallbackQuery, bot: Bot) -> None:
     nom = callback.data.split(":", 1)[1]
     yangi = await eslatma_namozini_almashtir(callback.from_user.id, nom)
+    await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
     tanlangan = set(yangi.split(",")) if yangi else set()
     await callback.message.edit_reply_markup(reply_markup=eslatma_namozlar_klaviaturasi(tanlangan))
     await callback.answer()
@@ -86,9 +89,10 @@ async def esl_daq_menyu(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith("esl_daq:"))
-async def esl_daq_tanlash(callback: CallbackQuery) -> None:
+async def esl_daq_tanlash(callback: CallbackQuery, bot: Bot) -> None:
     daqiqa = int(callback.data.split(":", 1)[1])
     await eslatma_daqiqasini_belgila(callback.from_user.id, daqiqa)
+    await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
     foydalanuvchi = await olish(callback.from_user.id)
     await callback.message.edit_text(
         _holat_matni(foydalanuvchi),

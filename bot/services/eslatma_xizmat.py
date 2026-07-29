@@ -11,7 +11,7 @@ from sqlalchemy import select
 from bot.db.connection import async_session
 from bot.db.models import Foydalanuvchi, NamozVaqti
 from bot.services.foydalanuvchi_xizmat import ochirish
-from bot.services.vaqt_xizmat import NOM_KORSATISH, TZ, hozir
+from bot.services.vaqt_xizmat import NAMOZ_TARTIBI, NOM_KORSATISH, TZ, hozir
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,45 @@ async def bugungi_eslatmalarni_reja(bot: Bot) -> None:
             reja_qilindi += 1
 
     logger.info("Bugungi eslatmalar rejalashtirildi: %d ta", reja_qilindi)
+
+
+async def bitta_foydalanuvchi_uchun_reja(bot: Bot, telegram_id: int) -> None:
+    """Foydalanuvchi /bildirishnoma orqali sozlamasini o'zgartirganda,
+    keyingi kunlik rejani kutmasdan darhol shu kishi uchun qayta rejalaydi
+    (yoqadi, o'chiradi yoki vaqtini yangilaydi)."""
+    if _scheduler is None:
+        return
+
+    async with async_session() as s:
+        f = await s.scalar(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == telegram_id))
+
+    hoz = hozir()
+    tanlangan = set(f.eslatma_namozlar.split(",")) if f and f.eslatma_namozlar else set()
+    bugun = await _bugungi_vaqt(f.shahar_id, hoz.date()) if f and f.shahar_id else None
+
+    for nom in NAMOZ_TARTIBI:
+        job_id = f"eslatma:{telegram_id}:{nom}:{hoz.date()}"
+        kerakmi = bool(f and f.eslatma_yoqilgan and nom in tanlangan and bugun is not None)
+
+        if not kerakmi:
+            if _scheduler.get_job(job_id):
+                _scheduler.remove_job(job_id)
+            continue
+
+        namoz_vaqti = datetime.combine(hoz.date(), getattr(bugun, nom), tzinfo=TZ)
+        eslatma_vaqti = namoz_vaqti - timedelta(minutes=f.eslatma_daqiqa)
+        if eslatma_vaqti <= hoz:
+            if _scheduler.get_job(job_id):
+                _scheduler.remove_job(job_id)
+            continue
+
+        _scheduler.add_job(
+            _eslatma_yubor,
+            DateTrigger(run_date=eslatma_vaqti),
+            args=[bot, telegram_id, nom, namoz_vaqti.strftime("%H:%M")],
+            id=job_id,
+            replace_existing=True,
+        )
 
 
 async def _eslatma_yubor(bot: Bot, telegram_id: int, namoz_nomi: str, vaqt_matni: str) -> None:
