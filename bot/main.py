@@ -6,11 +6,18 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from bot.config import settings
+from bot.db.connection import engine
+from bot.db.models import Base
 from bot.handlers import main_router
 
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
+
+    # scraper faqat shaharlar/namoz_vaqtlari/suralar jadvallarini yaratadi —
+    # bot o'ziga xos jadvallarni (masalan foydalanuvchilar) shu yerda qo'shadi.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     bot = Bot(
         token=settings.bot_token,

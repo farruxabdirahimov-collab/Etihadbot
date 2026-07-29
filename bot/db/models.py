@@ -1,6 +1,7 @@
 from datetime import date, datetime, time
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -54,6 +55,19 @@ class NamozVaqti(Base):
     olingan: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     shahar: Mapped[Shahar] = relationship(back_populates="vaqtlar")
+
+
+class Foydalanuvchi(Base):
+    __tablename__ = "foydalanuvchilar"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    shahar_id: Mapped[int | None] = mapped_column(ForeignKey("shaharlar.id"), nullable=True)
+    maqsad: Mapped[str | None] = mapped_column(String, nullable=True)  # organish|vaqt_organish|vaqt|erkin
+    daraja: Mapped[str] = mapped_column(String, default="boshlangich")  # boshlangich|orta|murakkab
+    yaratilgan: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    shahar: Mapped[Shahar | None] = relationship()
 
 
 class Sura(Base):
