@@ -6,9 +6,15 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from bot.config import settings
-from scraper.sozlamalar import XORAZM
+from scraper.sozlamalar import XORAZM, YIRIK_SHAHARLAR
 from scraper.suralar import suralarni_yukla
 from scraper.vaqtlar import vaqtlarni_yig
+
+_TOPLAMLAR = {
+    "xorazm": XORAZM,
+    "yirik": YIRIK_SHAHARLAR,
+    "hammasi": XORAZM + YIRIK_SHAHARLAR,
+}
 
 router = Router()
 
@@ -37,14 +43,22 @@ def _hisobot_matni(hisobot: dict) -> str:
 
 
 @router.message(Command("yigish_vaqtlar"))
-async def yigish_vaqtlar(message: Message) -> None:
+async def yigish_vaqtlar(message: Message, command: CommandObject) -> None:
     global _band
     if not _admin_mi(message) or await _bandmi(message):
         return
-    await message.answer("Xorazm (6 shahar) uchun yillik jadval yig'ish boshlandi. Bir necha daqiqa davom etadi...")
+    toplam = (command.args or "xorazm").strip().lower()
+    shaharlar = _TOPLAMLAR.get(toplam)
+    if shaharlar is None:
+        await message.answer("Foydalanish: /yigish_vaqtlar [xorazm|yirik|hammasi]")
+        return
+    await message.answer(
+        f"«{toplam}» uchun yillik jadval yig'ish boshlandi ({len(shaharlar)} shahar). "
+        "Bir necha daqiqa davom etadi..."
+    )
     _band = True
     try:
-        jami, hisobot = await vaqtlarni_yig(settings.database_url, date.today().year, XORAZM)
+        jami, hisobot = await vaqtlarni_yig(settings.database_url, date.today().year, shaharlar)
         await message.answer(f"✓ Tayyor: {jami} kun bazaga saqlandi.{_hisobot_matni(hisobot)}")
     except Exception as x:
         await message.answer(f"✗ Xato: {x}")
