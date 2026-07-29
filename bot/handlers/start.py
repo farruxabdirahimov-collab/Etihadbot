@@ -25,19 +25,23 @@ async def handle_start(message: Message, state: FSMContext) -> None:
     if mavjud and mavjud.shahar_id:
         shahar = await bittasi(mavjud.shahar_id)
         await message.answer(
-            f"Assalomu alaykum! Siz allaqachon ro'yxatdan o'tgansiz — "
-            f"shahringiz: {shahar.nom if shahar else '—'}.\n\n"
-            "Bugungi namoz vaqtlari uchun /vaqt, sozlamalarni o'zgartirish uchun "
-            "/sozlama, eslatmalarni sozlash uchun /bildirishnoma yuboring.\n\n"
-            f"{MANBA_MATNI}"
+            "✅ <b>Assalomu alaykum!</b>\n\n"
+            "Siz allaqachon ro'yxatdan o'tgansiz.\n\n"
+            f"📍 Shahringiz: <b>{shahar.nom if shahar else '—'}</b>\n\n"
+            "━━━━━━━━━━━━━━\n\n"
+            "🕌 /vaqt — bugungi namoz vaqtlari\n"
+            "⚙️ /sozlama — shaharni o'zgartirish\n"
+            "🔔 /bildirishnoma — eslatmalarni sozlash\n\n"
+            f"<i>{MANBA_MATNI}</i>"
         )
         return
 
     await state.set_state(RoyxatState.maqsad)
     await message.answer(
-        f"Assalomu alaykum va rohmatulloh!\n\n"
-        f"Namoz va uning vaqtlari haqidagi «{BOT_NOMI}» ilovasiga xush kelibsiz. 🌙\n\n"
-        "Sizga qulayroq bo'lishi uchun avval bitta savol: bizdan asosan nimani kutasiz?",
+        "🌙 <b>Assalomu alaykum va rohmatulloh!</b>\n\n"
+        f"Namoz va uning vaqtlari haqidagi «<b>{BOT_NOMI}</b>» ilovasiga xush kelibsiz.\n\n"
+        "Sizga qulayroq bo'lishi uchun avval bitta savol:\n"
+        "<b>bizdan asosan nimani kutasiz?</b>",
         reply_markup=maqsad_klaviaturasi(),
     )
 
@@ -48,7 +52,7 @@ async def maqsad_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(maqsad=maqsad)
     await state.set_state(RoyxatState.viloyat)
     await callback.message.edit_text(
-        f"✓ Tanlandi: {MAQSADLAR[maqsad]}\n\nEndi qaysi viloyatdasiz?",
+        f"✅ Tanlandi: <b>{MAQSADLAR[maqsad]}</b>\n\n📍 Endi qaysi viloyatdasiz?",
         reply_markup=viloyat_klaviaturasi(),
     )
     await callback.answer()
@@ -73,7 +77,7 @@ async def viloyat_tanlandi(callback: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(viloyat=viloyat_nomi)
     await state.set_state(RoyxatState.shahar)
     await callback.message.edit_text(
-        f"{viloyat_nomi} — aniq shahringizni tanlang:",
+        f"📍 <b>{viloyat_nomi}</b> — aniq shahringizni tanlang:",
         reply_markup=shahar_klaviaturasi(shaharlar),
     )
     await callback.answer()
@@ -92,10 +96,12 @@ async def _royxatni_yakunla(callback: CallbackQuery, state: FSMContext, shahar_i
 
     shahar = await bittasi(shahar_id)
     await callback.message.edit_text(
-        f"✓ Ro'yxatdan o'tdingiz — shahar: {shahar.nom if shahar else '—'}.\n\n"
-        "Bugungi namoz vaqtlari uchun /vaqt yuboring.\n\n"
-        "Sizga standart holatda kuniga 1 ta eslatma (Bomdod, 10 daqiqa oldin) "
-        "yoqilgan — buni /bildirishnoma orqali o'zgartirishingiz mumkin.\n\n"
-        f"{MANBA_MATNI}"
+        "✅ <b>Ro'yxatdan o'tdingiz!</b>\n\n"
+        f"📍 Shahringiz: <b>{shahar.nom if shahar else '—'}</b>\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+        "🕌 Bugungi namoz vaqtlarini ko'rish uchun /vaqt yuboring\n\n"
+        "🔔 Standart bildirishnoma: <b>Bomdod</b>dan 10 daqiqa oldin yoqilgan\n"
+        "   (o'zgartirish uchun /bildirishnoma)\n\n"
+        f"<i>{MANBA_MATNI}</i>"
     )
     await callback.answer()

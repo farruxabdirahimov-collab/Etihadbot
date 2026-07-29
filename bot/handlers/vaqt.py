@@ -42,22 +42,21 @@ async def vaqt_korsat(message: Message) -> None:
 
     bugun = holat["bugun"]
     qatorlar = [
-        f"{shahar.nom if shahar else ''} — bugungi namoz vaqtlari:",
-        "",
-        f"Bomdod: {bugun.bomdod.strftime('%H:%M')}",
-        f"Quyosh: {bugun.quyosh.strftime('%H:%M')}",
-        f"Peshin: {bugun.peshin.strftime('%H:%M')}",
-        f"Asr:    {bugun.asr.strftime('%H:%M')}",
-        f"Shom:   {bugun.shom.strftime('%H:%M')}",
-        f"Xufton: {bugun.xufton.strftime('%H:%M')}",
+        f"🕌 <b>{shahar.nom if shahar else ''}</b> — bugungi namoz vaqtlari\n",
+        f"🌅 Bomdod: <b>{bugun.bomdod.strftime('%H:%M')}</b>",
+        f"☀️ Quyosh: <b>{bugun.quyosh.strftime('%H:%M')}</b>",
+        f"🌤 Peshin: <b>{bugun.peshin.strftime('%H:%M')}</b>",
+        f"🌇 Asr: <b>{bugun.asr.strftime('%H:%M')}</b>",
+        f"🌆 Shom: <b>{bugun.shom.strftime('%H:%M')}</b>",
+        f"🌙 Xufton: <b>{bugun.xufton.strftime('%H:%M')}</b>",
     ]
     if holat["keyingi_nom"]:
         nom = NOM_KORSATISH[holat["keyingi_nom"]]
         qatorlar.append("")
-        qatorlar.append(f"⏳ {nom} namozigacha: {_qolgan_matni(holat['qolgan'])}")
+        qatorlar.append(f"⏳ <b>{nom}</b> namozigacha: <b>{_qolgan_matni(holat['qolgan'])}</b>")
 
     qatorlar.append("")
     qatorlar.append(
-        "Namoz vaqtlari manbasi: namozvaqti.uz — «Book Media Nashr» taqvim kitobi asosida"
+        "<i>Namoz vaqtlari manbasi: namozvaqti.uz — «Book Media Nashr» taqvim kitobi asosida</i>"
     )
     await message.answer("\n".join(qatorlar), reply_markup=_ilova_klaviaturasi())
