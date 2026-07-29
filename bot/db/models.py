@@ -72,6 +72,10 @@ class Foydalanuvchi(Base):
     eslatma_namozlar: Mapped[str] = mapped_column(String, default="bomdod")  # vergul bilan: "bomdod,peshin"
     eslatma_daqiqa: Mapped[int] = mapped_column(SmallInteger, default=10)
 
+    # Vaqt tugashidan oldin ("qazo qilib qo'ymang") ogohlantirishi — standart o'chirilgan.
+    eslatma_tugash_yoqilgan: Mapped[bool] = mapped_column(Boolean, default=False)
+    eslatma_tugash_daqiqa: Mapped[int] = mapped_column(SmallInteger, default=15)
+
     shahar: Mapped[Shahar | None] = relationship()
 
 

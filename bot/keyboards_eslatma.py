@@ -8,12 +8,14 @@ NAMOZ_KORSATISH = {
 DAQIQA_VARIANTLARI = [5, 10, 15, 20, 30]
 
 
-def eslatma_menyu_klaviaturasi(yoqilgan: bool) -> InlineKeyboardMarkup:
+def eslatma_menyu_klaviaturasi(yoqilgan: bool, tugash_yoqilgan: bool) -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
     holat = "🔕 O'chirish" if yoqilgan else "🔔 Yoqish"
     b.button(text=holat, callback_data="esl_yoq")
     b.button(text="🕌 Namozlarni tanlash", callback_data="esl_namoz_menyu")
     b.button(text="⏱ Necha daqiqa oldin", callback_data="esl_daq_menyu")
+    tugash_belgi = "✅" if tugash_yoqilgan else "⬜️"
+    b.button(text=f"{tugash_belgi} Vaqt tugash ogohlantirishi", callback_data="esl_tugash_menyu")
     b.adjust(1)
     return b.as_markup()
 
@@ -34,4 +36,15 @@ def eslatma_daqiqa_klaviaturasi() -> InlineKeyboardMarkup:
         b.button(text=f"{daq} daqiqa", callback_data=f"esl_daq:{daq}")
     b.button(text="« Orqaga", callback_data="esl_orqaga")
     b.adjust(3)
+    return b.as_markup()
+
+
+def eslatma_tugash_klaviaturasi(yoqilgan: bool) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    holat = "🔕 O'chirish" if yoqilgan else "🔔 Yoqish"
+    b.button(text=holat, callback_data="esl_tugash_yoq")
+    for daq in DAQIQA_VARIANTLARI:
+        b.button(text=f"{daq} daqiqa", callback_data=f"esl_tugash_daq:{daq}")
+    b.button(text="« Orqaga", callback_data="esl_orqaga")
+    b.adjust(1, 3, 2, 1)
     return b.as_markup()

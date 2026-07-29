@@ -8,6 +8,8 @@ _ALTERLAR = [
     "ALTER TABLE foydalanuvchilar ADD COLUMN IF NOT EXISTS eslatma_yoqilgan BOOLEAN NOT NULL DEFAULT TRUE",
     "ALTER TABLE foydalanuvchilar ADD COLUMN IF NOT EXISTS eslatma_namozlar TEXT NOT NULL DEFAULT 'bomdod'",
     "ALTER TABLE foydalanuvchilar ADD COLUMN IF NOT EXISTS eslatma_daqiqa SMALLINT NOT NULL DEFAULT 10",
+    "ALTER TABLE foydalanuvchilar ADD COLUMN IF NOT EXISTS eslatma_tugash_yoqilgan BOOLEAN NOT NULL DEFAULT FALSE",
+    "ALTER TABLE foydalanuvchilar ADD COLUMN IF NOT EXISTS eslatma_tugash_daqiqa SMALLINT NOT NULL DEFAULT 15",
 ]
 
 

@@ -77,3 +77,22 @@ async def eslatma_daqiqasini_belgila(telegram_id: int, daqiqa: int) -> None:
         if f:
             f.eslatma_daqiqa = daqiqa
             await s.commit()
+
+
+async def eslatma_tugashini_almashtir(telegram_id: int) -> bool | None:
+    """Vaqt tugashidan oldingi ogohlantirishni yoqadi/o'chiradi."""
+    async with async_session() as s:
+        f = await s.scalar(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == telegram_id))
+        if not f:
+            return None
+        f.eslatma_tugash_yoqilgan = not f.eslatma_tugash_yoqilgan
+        await s.commit()
+        return f.eslatma_tugash_yoqilgan
+
+
+async def eslatma_tugash_daqiqasini_belgila(telegram_id: int, daqiqa: int) -> None:
+    async with async_session() as s:
+        f = await s.scalar(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == telegram_id))
+        if f:
+            f.eslatma_tugash_daqiqa = daqiqa
+            await s.commit()

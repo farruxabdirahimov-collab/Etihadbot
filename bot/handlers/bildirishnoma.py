@@ -8,11 +8,14 @@ from bot.keyboards_eslatma import (
     eslatma_daqiqa_klaviaturasi,
     eslatma_menyu_klaviaturasi,
     eslatma_namozlar_klaviaturasi,
+    eslatma_tugash_klaviaturasi,
 )
 from bot.services.eslatma_xizmat import bitta_foydalanuvchi_uchun_reja
 from bot.services.foydalanuvchi_xizmat import (
     eslatma_daqiqasini_belgila,
     eslatma_namozini_almashtir,
+    eslatma_tugash_daqiqasini_belgila,
+    eslatma_tugashini_almashtir,
     eslatmani_almashtir,
     olish,
 )
@@ -26,11 +29,17 @@ def _holat_matni(f: Foydalanuvchi) -> str:
         namozlar = ", ".join(NAMOZ_KORSATISH[n] for n in f.eslatma_namozlar.split(",") if n in NAMOZ_KORSATISH)
     else:
         namozlar = "tanlanmagan"
+    tugash = f"yoqilgan (vaqt tugashiga {f.eslatma_tugash_daqiqa} daqiqa qolganda)" if f.eslatma_tugash_yoqilgan else "o'chirilgan"
     return (
         f"🔔 Bildirishnoma: {holat}\n"
         f"🕌 Namozlar: {namozlar}\n"
-        f"⏱ Necha daqiqa oldin: {f.eslatma_daqiqa} daqiqa"
+        f"⏱ Necha daqiqa oldin: {f.eslatma_daqiqa} daqiqa\n"
+        f"⚠️ Vaqt tugash ogohlantirishi: {tugash}"
     )
+
+
+def _menyu(f: Foydalanuvchi):
+    return eslatma_menyu_klaviaturasi(f.eslatma_yoqilgan, f.eslatma_tugash_yoqilgan)
 
 
 @router.message(Command("bildirishnoma"))
@@ -39,10 +48,7 @@ async def bildirishnoma_menyu(message: Message) -> None:
     if not foydalanuvchi or not foydalanuvchi.shahar_id:
         await message.answer("Avval ro'yxatdan o'ting: /start")
         return
-    await message.answer(
-        _holat_matni(foydalanuvchi),
-        reply_markup=eslatma_menyu_klaviaturasi(foydalanuvchi.eslatma_yoqilgan),
-    )
+    await message.answer(_holat_matni(foydalanuvchi), reply_markup=_menyu(foydalanuvchi))
 
 
 @router.callback_query(F.data == "esl_yoq")
@@ -53,9 +59,7 @@ async def esl_yoq(callback: CallbackQuery, bot: Bot) -> None:
         return
     await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
     foydalanuvchi = await olish(callback.from_user.id)
-    await callback.message.edit_text(
-        _holat_matni(foydalanuvchi), reply_markup=eslatma_menyu_klaviaturasi(yoqilgan)
-    )
+    await callback.message.edit_text(_holat_matni(foydalanuvchi), reply_markup=_menyu(foydalanuvchi))
     await callback.answer("Yoqildi" if yoqilgan else "O'chirildi")
 
 
@@ -94,18 +98,45 @@ async def esl_daq_tanlash(callback: CallbackQuery, bot: Bot) -> None:
     await eslatma_daqiqasini_belgila(callback.from_user.id, daqiqa)
     await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
     foydalanuvchi = await olish(callback.from_user.id)
+    await callback.message.edit_text(_holat_matni(foydalanuvchi), reply_markup=_menyu(foydalanuvchi))
+    await callback.answer(f"{daqiqa} daqiqa belgilandi")
+
+
+@router.callback_query(F.data == "esl_tugash_menyu")
+async def esl_tugash_menyu(callback: CallbackQuery) -> None:
+    foydalanuvchi = await olish(callback.from_user.id)
     await callback.message.edit_text(
-        _holat_matni(foydalanuvchi),
-        reply_markup=eslatma_menyu_klaviaturasi(foydalanuvchi.eslatma_yoqilgan),
+        "⚠️ Vaqt tugashidan oldin ogohlantirish — namoz vaqti tugashiga "
+        "qancha qolganda ogohlantirilsin? (masalan «Peshin 15 daqiqadan "
+        "keyin tugaydi»)",
+        reply_markup=eslatma_tugash_klaviaturasi(foydalanuvchi.eslatma_tugash_yoqilgan),
     )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "esl_tugash_yoq")
+async def esl_tugash_yoq(callback: CallbackQuery, bot: Bot) -> None:
+    yoqilgan = await eslatma_tugashini_almashtir(callback.from_user.id)
+    if yoqilgan is None:
+        await callback.answer("Avval ro'yxatdan o'ting: /start", show_alert=True)
+        return
+    await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
+    await callback.message.edit_reply_markup(reply_markup=eslatma_tugash_klaviaturasi(yoqilgan))
+    await callback.answer("Yoqildi" if yoqilgan else "O'chirildi")
+
+
+@router.callback_query(F.data.startswith("esl_tugash_daq:"))
+async def esl_tugash_daq_tanlash(callback: CallbackQuery, bot: Bot) -> None:
+    daqiqa = int(callback.data.split(":", 1)[1])
+    await eslatma_tugash_daqiqasini_belgila(callback.from_user.id, daqiqa)
+    await bitta_foydalanuvchi_uchun_reja(bot, callback.from_user.id)
+    foydalanuvchi = await olish(callback.from_user.id)
+    await callback.message.edit_text(_holat_matni(foydalanuvchi), reply_markup=_menyu(foydalanuvchi))
     await callback.answer(f"{daqiqa} daqiqa belgilandi")
 
 
 @router.callback_query(F.data == "esl_orqaga")
 async def esl_orqaga(callback: CallbackQuery) -> None:
     foydalanuvchi = await olish(callback.from_user.id)
-    await callback.message.edit_text(
-        _holat_matni(foydalanuvchi),
-        reply_markup=eslatma_menyu_klaviaturasi(foydalanuvchi.eslatma_yoqilgan),
-    )
+    await callback.message.edit_text(_holat_matni(foydalanuvchi), reply_markup=_menyu(foydalanuvchi))
     await callback.answer()

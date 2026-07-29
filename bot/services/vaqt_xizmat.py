@@ -15,6 +15,10 @@ NOM_KORSATISH = {
     "asr": "Asr", "shom": "Shom", "xufton": "Xufton",
 }
 
+# Har bir namoz vaqti qaysi chegara bilan tugashini bildiradi — "tugash
+# ogohlantirishi" bildirishnomasi uchun (eslatma_xizmat.py).
+CHEGARA_NOMI = {"bomdod": "quyosh", "peshin": "asr", "asr": "shom", "shom": "xufton", "xufton": "bomdod"}
+
 # Fiqh: har bir namoz o'z vaqti kirgandan keyingi chegara kirguncha
 # amal qiladi (Bomdod -> Quyosh chiqquncha, Peshin -> Asr kirguncha,
 # ... Xufton -> ertangi Bomdodgacha). Quyosh bilan Peshin orasida
