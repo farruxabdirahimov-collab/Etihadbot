@@ -30,3 +30,14 @@ async def shaharni_yangila(telegram_id: int, shahar_id: int) -> None:
         if foydalanuvchi:
             foydalanuvchi.shahar_id = shahar_id
             await s.commit()
+
+
+async def ochirish(telegram_id: int) -> bool:
+    """Foydalanuvchi yozuvini o'chiradi — sinov uchun /start oqimini qaytadan boshlash imkonini beradi."""
+    async with async_session() as s:
+        foydalanuvchi = await s.scalar(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == telegram_id))
+        if not foydalanuvchi:
+            return False
+        await s.delete(foydalanuvchi)
+        await s.commit()
+        return True

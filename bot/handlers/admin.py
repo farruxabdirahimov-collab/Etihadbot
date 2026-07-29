@@ -6,6 +6,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from bot.config import settings
+from bot.services.foydalanuvchi_xizmat import ochirish
 from scraper.sozlamalar import XORAZM, YIRIK_SHAHARLAR
 from scraper.suralar import suralarni_yukla
 from scraper.vaqtlar import vaqtlarni_yig
@@ -88,6 +89,17 @@ async def yigish_shahar(message: Message, command: CommandObject) -> None:
         await message.answer(f"✗ Xato: {x}")
     finally:
         _band = False
+
+
+@router.message(Command("qaytadan"))
+async def qaytadan(message: Message) -> None:
+    if not _admin_mi(message):
+        return
+    ochirildi = await ochirish(message.from_user.id)
+    if ochirildi:
+        await message.answer("✓ Ro'yxatingiz o'chirildi. Endi /start yuborib yangi oqimni sinab ko'rishingiz mumkin.")
+    else:
+        await message.answer("Sizda ro'yxat topilmadi — allaqachon toza holat.")
 
 
 @router.message(Command("tekshir"))
