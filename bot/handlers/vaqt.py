@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, WebAppInfo
 
-from bot.config import settings
+from bot import miniapp_url
 from bot.services.foydalanuvchi_xizmat import olish
 from bot.services.shahar_xizmat import bittasi
 from bot.services.vaqt_xizmat import NOM_KORSATISH, joriy_holat
@@ -11,9 +11,10 @@ router = Router()
 
 
 def _ilova_klaviaturasi() -> InlineKeyboardMarkup | None:
-    if not settings.miniapp_url:
+    manzil = miniapp_url.ol()
+    if not manzil:
         return None
-    tugma = InlineKeyboardButton(text="📱 Ilovani ochish", web_app=WebAppInfo(url=settings.miniapp_url))
+    tugma = InlineKeyboardButton(text="📱 Ilovani ochish", web_app=WebAppInfo(url=manzil))
     return InlineKeyboardMarkup(inline_keyboard=[[tugma]])
 
 

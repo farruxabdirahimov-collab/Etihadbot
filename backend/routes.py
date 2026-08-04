@@ -26,8 +26,14 @@ async def qibla(shahar_id: int = Query(...)) -> dict:
 
 @router.get("/ilova")
 async def ilova_malumoti(so_rov: Request) -> dict:
-    """Ulashish havolasini qurish uchun bot foydalanuvchi nomi."""
-    return {"bot_username": getattr(so_rov.app.state, "bot_username", "")}
+    """Ulashish havolasini qurish uchun bot foydalanuvchi nomi va
+    hozir ishlayotgan frontend versiyasi (diagnostika uchun)."""
+    from bot.miniapp_url import VERSIYA
+
+    return {
+        "bot_username": getattr(so_rov.app.state, "bot_username", ""),
+        "versiya": VERSIYA,
+    }
 
 
 @router.get("/vaqtlar")

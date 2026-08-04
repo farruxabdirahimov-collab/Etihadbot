@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import MenuButtonWebApp, WebAppInfo
 
 from backend.main import app as fastapi_app
-from bot import buyruqlar
+from bot import buyruqlar, miniapp_url
 from bot.config import settings
 from bot.db.connection import engine
 from bot.db.migratsiya import yangila
@@ -49,10 +49,12 @@ async def main() -> None:
 
     # MINIAPP_URL hali sozlanmagan bo'lsa (Railway domeni yaratilmagan),
     # tugma ko'rsatilmaydi — sinib qolgan havola bilan chalg'itmaslik uchun.
-    if settings.miniapp_url:
+    ilova_manzili = miniapp_url.ol()
+    if ilova_manzili:
         await bot.set_chat_menu_button(
-            menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=settings.miniapp_url))
+            menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=ilova_manzili))
         )
+        logging.info("Mini App manzili: %s", ilova_manzili)
 
     # Bot (polling) va Mini App backend (HTTP) bitta Railway servisida,
     # bitta protsessda birga ishlaydi — alohida servis kerak emas.
