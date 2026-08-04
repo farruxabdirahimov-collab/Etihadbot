@@ -1,14 +1,33 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 
 from backend.dependencies import joriy_foydalanuvchi
 from bot.db.connection import async_session
 from bot.db.models import Foydalanuvchi, NamozVaqti, Shahar, Sura
+from bot.services.qibla_xizmat import shahar_boyicha
 from bot.services.vaqt_xizmat import hozir
 
 router = APIRouter(prefix="/api")
+
+
+@router.get("/qibla")
+async def qibla(shahar_id: int = Query(...)) -> dict:
+    """Tanlangan shahar markazidan qibla azimuti — GPS ruxsati kerak emas."""
+    async with async_session() as s:
+        shahar = await s.get(Shahar, shahar_id)
+
+    malumot = shahar_boyicha(shahar.slug) if shahar else None
+    if malumot is None:
+        return {"topildi": False}
+    return {"topildi": True, "shahar": shahar.nom, **malumot}
+
+
+@router.get("/ilova")
+async def ilova_malumoti(so_rov: Request) -> dict:
+    """Ulashish havolasini qurish uchun bot foydalanuvchi nomi."""
+    return {"bot_username": getattr(so_rov.app.state, "bot_username", "")}
 
 
 @router.get("/vaqtlar")

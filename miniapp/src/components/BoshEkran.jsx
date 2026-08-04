@@ -8,7 +8,7 @@ function qolganMatni(soniya) {
   return `${ikki(daq)}:${ikki(son)}`;
 }
 
-export default function BoshEkran({ vaqtlar, hozir, daraja, suralar, ochRoyxat, ochQoida, ochSura }) {
+export default function BoshEkran({ vaqtlar, hozir, daraja, suralar, qibla, ochRoyxat, ochQoida, ochSura, ochQibla, ulash }) {
   const holat = joriyHolatniHisobla(vaqtlar, hozir);
   const qolganSoniya = holat?.chegaraVaqt ? Math.max(0, Math.round((holat.chegaraVaqt - hozir) / 1000)) : null;
   const oynaSoniya = holat?.boshlanishi && holat?.chegaraVaqt
@@ -133,12 +133,29 @@ export default function BoshEkran({ vaqtlar, hozir, daraja, suralar, ochRoyxat, 
           <p style={{ fontFamily: DISPLAY, fontSize: 15, color: r.matn, marginBottom: 3 }}>Qisqa suralar</p>
           <p style={{ fontSize: 11, color: r.xira, margin: 0 }}>{suralar.length} ta · oflayn</p>
         </button>
-        {["Qazo namozlar", "Qibla"].map((nom) => (
-          <div key={nom} style={{ padding: "14px 16px", borderRadius: 3, background: `${r.matn}0A`, border: `1px solid ${r.xira}2E` }}>
-            <p style={{ fontFamily: DISPLAY, fontSize: 15, color: r.matn, marginBottom: 3 }}>{nom}</p>
-            <p style={{ fontSize: 11, color: r.xira, margin: 0 }}>Tez orada</p>
-          </div>
-        ))}
+
+        <button
+          onClick={ochQibla}
+          style={{ padding: "14px 16px", borderRadius: 3, background: `${r.urgu}12`, border: `1px solid ${r.urgu}4D`, cursor: "pointer", textAlign: "left" }}
+        >
+          <p style={{ fontFamily: DISPLAY, fontSize: 15, color: r.matn, marginBottom: 3 }}>Qibla</p>
+          <p style={{ fontSize: 11, color: r.xira, margin: 0 }}>
+            {qibla?.topildi ? `${qibla.gradus}° · ${qibla.yonalish}` : "yo'nalishni ko'rish"}
+          </p>
+        </button>
+
+        <div style={{ padding: "14px 16px", borderRadius: 3, background: `${r.matn}0A`, border: `1px solid ${r.xira}2E` }}>
+          <p style={{ fontFamily: DISPLAY, fontSize: 15, color: r.matn, marginBottom: 3 }}>Qazo namozlar</p>
+          <p style={{ fontSize: 11, color: r.xira, margin: 0 }}>Tez orada</p>
+        </div>
+
+        <button
+          onClick={ulash}
+          style={{ padding: "14px 16px", borderRadius: 3, background: `${r.matn}0A`, border: `1px solid ${r.xira}2E`, cursor: "pointer", textAlign: "left" }}
+        >
+          <p style={{ fontFamily: DISPLAY, fontSize: 15, color: r.matn, marginBottom: 3 }}>Ulashish</p>
+          <p style={{ fontSize: 11, color: r.xira, margin: 0 }}>do'stlarga tavsiya</p>
+        </button>
       </div>
 
       <p style={{ marginTop: 20, textAlign: "center", fontSize: 9.5, lineHeight: 1.6, color: r.xira, opacity: 0.7 }}>

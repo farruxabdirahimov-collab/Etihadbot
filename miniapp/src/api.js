@@ -26,6 +26,8 @@ export const api = {
   vaqtlar: (shaharId) => sorov(`/api/vaqtlar?shahar_id=${shaharId}`),
   suralar: () => sorov("/api/suralar"),
   sura: (raqam) => sorov(`/api/suralar/${raqam}`),
+  qibla: (shaharId) => sorov(`/api/qibla?shahar_id=${shaharId}`),
+  ilova: () => sorov("/api/ilova"),
   viloyatlar: () => sorov("/api/viloyatlar"),
   sozlamalar: () => sorov("/api/sozlamalar", { kerakAuth: true }),
   sozlamalarniYangila: (patch) =>

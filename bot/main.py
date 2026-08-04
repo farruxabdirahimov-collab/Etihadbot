@@ -36,6 +36,11 @@ async def main() -> None:
     # rejalashtirish uchun shu bot obyektidan foydalanadi.
     fastapi_app.state.bot = bot
 
+    # Ulashish havolasi uchun bot foydalanuvchi nomi — qo'lda sozlash
+    # shart bo'lmasligi uchun Telegram'ning o'zidan olinadi.
+    men = await bot.get_me()
+    fastapi_app.state.bot_username = men.username or ""
+
     scheduler = await ishga_tushir(bot)
 
     # MINIAPP_URL hali sozlanmagan bo'lsa (Railway domeni yaratilmagan),

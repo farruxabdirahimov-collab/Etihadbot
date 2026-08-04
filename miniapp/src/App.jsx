@@ -2,14 +2,18 @@ import { useEffect, useState } from "react";
 import { api } from "./api.js";
 import BildirishnomaOyna from "./components/BildirishnomaOyna.jsx";
 import BoshEkran from "./components/BoshEkran.jsx";
+import QiblaOyna from "./components/QiblaOyna.jsx";
 import QoidaOyna from "./components/QoidaOyna.jsx";
 import ShaharTanlashOyna from "./components/ShaharTanlashOyna.jsx";
 import SozlamaOyna from "./components/SozlamaOyna.jsx";
 import SuraOyna from "./components/SuraOyna.jsx";
 import SuraRoyxati from "./components/SuraRoyxati.jsx";
 import { joriyHolatniHisobla, rangniAniqla } from "./hisoblash.js";
-import { telegramniTayyorla } from "./telegram.js";
+import { telegramniTayyorla, ulashishniOch } from "./telegram.js";
 import { UTIL } from "./theme.js";
+
+const TAVSIYA_MATNI =
+  "Namoz vaqtlari va namozni o'rganish uchun «Etihat — E'tiqod» botini tavsiya qilaman.";
 
 export default function App() {
   const [holat, setHolat] = useState("yuklanmoqda"); // yuklanmoqda | royxatsiz | tayyor | xato
@@ -18,6 +22,8 @@ export default function App() {
   const [suralar, setSuralar] = useState([]);
   const [sozlamalar, setSozlamalar] = useState(null);
   const [viloyatlar, setViloyatlar] = useState([]);
+  const [qibla, setQibla] = useState(null);
+  const [botUsername, setBotUsername] = useState("");
   const [hozir, setHozir] = useState(new Date());
   // null | 'royxat' | 'sura' | 'qoida' | 'sozlama' | 'shahar' | 'bildirishnoma'
   const [modal, setModal] = useState(null);
@@ -33,13 +39,16 @@ export default function App() {
           return;
         }
         setFoydalanuvchi(f);
-        const [v, s, soz, vil] = await Promise.all([
-          api.vaqtlar(f.shahar_id), api.suralar(), api.sozlamalar(), api.viloyatlar(),
+        const [v, s, soz, vil, q, ilova] = await Promise.all([
+          api.vaqtlar(f.shahar_id), api.suralar(), api.sozlamalar(),
+          api.viloyatlar(), api.qibla(f.shahar_id), api.ilova(),
         ]);
         setVaqtlar(v);
         setSuralar(s);
         setSozlamalar(soz);
         setViloyatlar(vil);
+        setQibla(q);
+        setBotUsername(ilova.bot_username);
         setHolat(v.topildi ? "tayyor" : "xato");
       } catch {
         setHolat("xato");
@@ -66,9 +75,15 @@ export default function App() {
 
   async function shaharniTanlash(sh) {
     await sozlamaniYangila({ shahar_id: sh.id });
-    const yangiVaqtlar = await api.vaqtlar(sh.id);
+    const [yangiVaqtlar, yangiQibla] = await Promise.all([api.vaqtlar(sh.id), api.qibla(sh.id)]);
     setVaqtlar(yangiVaqtlar);
+    setQibla(yangiQibla);
     setModal("sozlama");
+  }
+
+  function ulash() {
+    if (!botUsername) return;
+    ulashishniOch(`https://t.me/${botUsername}`, TAVSIYA_MATNI);
   }
 
   const svetoforHolati = vaqtlar ? joriyHolatniHisobla(vaqtlar, hozir) : null;
@@ -97,9 +112,12 @@ export default function App() {
           hozir={hozir}
           daraja={foydalanuvchi?.daraja ?? "boshlangich"}
           suralar={suralar}
+          qibla={qibla}
           ochRoyxat={() => setModal("royxat")}
           ochQoida={() => setModal("qoida")}
           ochSura={ochSura}
+          ochQibla={() => setModal("qibla")}
+          ulash={ulash}
         />
       )}
 
@@ -125,6 +143,9 @@ export default function App() {
         <SuraOyna r={r} sura={suraTanlangan} yop={() => setModal(null)} orqaga={() => setModal("royxat")} />
       )}
       {modal === "qoida" && <QoidaOyna r={r} yop={() => setModal(null)} />}
+      {modal === "qibla" && qibla?.topildi && (
+        <QiblaOyna r={r} qibla={qibla} yop={() => setModal(null)} />
+      )}
 
       {modal === "sozlama" && sozlamalar && (
         <SozlamaOyna
