@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import MenuButtonWebApp, WebAppInfo
 
 from backend.main import app as fastapi_app
+from bot import buyruqlar
 from bot.config import settings
 from bot.db.connection import engine
 from bot.db.migratsiya import yangila
@@ -40,6 +41,9 @@ async def main() -> None:
     # shart bo'lmasligi uchun Telegram'ning o'zidan olinadi.
     men = await bot.get_me()
     fastapi_app.state.bot_username = men.username or ""
+
+    # «/» bosilganda chiqadigan buyruqlar ro'yxati.
+    await buyruqlar.ornat(bot)
 
     scheduler = await ishga_tushir(bot)
 
