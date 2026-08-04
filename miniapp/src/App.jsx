@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "./api.js";
 import BildirishnomaOyna from "./components/BildirishnomaOyna.jsx";
 import BoshEkran from "./components/BoshEkran.jsx";
+import FikrOyna from "./components/FikrOyna.jsx";
 import QiblaOyna from "./components/QiblaOyna.jsx";
 import QoidaOyna from "./components/QoidaOyna.jsx";
 import ShaharTanlashOyna from "./components/ShaharTanlashOyna.jsx";
@@ -155,8 +156,10 @@ export default function App() {
           yop={() => setModal(null)}
           ochShahar={() => setModal("shahar")}
           ochBildirishnoma={() => setModal("bildirishnoma")}
+          ochFikr={() => setModal("fikr")}
         />
       )}
+      {modal === "fikr" && <FikrOyna r={r} yop={() => setModal("sozlama")} />}
       {modal === "shahar" && (
         <ShaharTanlashOyna
           r={r}

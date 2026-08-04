@@ -16,7 +16,17 @@ async function sorov(yol, { kerakAuth = false, usul = "GET", tana } = {}) {
     body: tana !== undefined ? JSON.stringify(tana) : undefined,
   });
   if (!javob.ok) {
-    throw new Error(`So'rov xatosi: ${javob.status}`);
+    // Backend `detail` maydonida tushunarli sabab yuboradi (masalan
+    // «60 soniyadan keyin urinib ko'ring») — uni foydalanuvchiga
+    // ko'rsatish uchun o'qib olamiz.
+    let sabab = `So'rov xatosi: ${javob.status}`;
+    try {
+      const xato = await javob.json();
+      if (typeof xato?.detail === "string") sabab = xato.detail;
+    } catch {
+      /* JSON emas — standart matn qoladi */
+    }
+    throw new Error(sabab);
   }
   return javob.json();
 }
@@ -32,4 +42,5 @@ export const api = {
   sozlamalar: () => sorov("/api/sozlamalar", { kerakAuth: true }),
   sozlamalarniYangila: (patch) =>
     sorov("/api/sozlamalar", { kerakAuth: true, usul: "PATCH", tana: patch }),
+  fikrYubor: (matn) => sorov("/api/fikr", { kerakAuth: true, usul: "POST", tana: { matn } }),
 };

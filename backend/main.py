@@ -5,12 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from backend.routes import router as api_router
+from backend.routes_fikr import router as fikr_router
 from backend.routes_sozlama import router as sozlama_router
 
 app = FastAPI(title="Etihat — E'tiqod Mini App API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(api_router)
 app.include_router(sozlama_router)
+app.include_router(fikr_router)
 
 
 @app.get("/health")
