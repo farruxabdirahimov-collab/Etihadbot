@@ -32,6 +32,10 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_router(main_router)
 
+    # Mini App backend'i (bir xil protsessda) eslatmalarni darhol qayta
+    # rejalashtirish uchun shu bot obyektidan foydalanadi.
+    fastapi_app.state.bot = bot
+
     scheduler = await ishga_tushir(bot)
 
     # MINIAPP_URL hali sozlanmagan bo'lsa (Railway domeni yaratilmagan),

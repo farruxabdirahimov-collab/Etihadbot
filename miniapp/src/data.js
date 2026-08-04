@@ -15,7 +15,7 @@ export const NAMOZLAR = [
   },
   {
     kalit: "asr", nom: "Asr", arab: "العصر",
-    rakat: [{ turi: "sunnat", soni: 4 }, { turi: "farz", soni: 4 }],
+    rakat: [{ turi: "farz", soni: 4 }],
     sura: { boshlangich: 114, orta: 107, murakkab: 106 },
   },
   {
@@ -25,7 +25,7 @@ export const NAMOZLAR = [
   },
   {
     kalit: "xufton", nom: "Xufton", arab: "العشاء",
-    rakat: [{ turi: "sunnat", soni: 4 }, { turi: "farz", soni: 4 }, { turi: "sunnat", soni: 2 }, { turi: "vitr", soni: 3 }],
+    rakat: [{ turi: "farz", soni: 4 }, { turi: "sunnat", soni: 2 }, { turi: "vitr", soni: 3 }],
     sura: { boshlangich: 108, orta: 102, murakkab: 101 },
   },
 ];
