@@ -4,21 +4,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.db.models import Shahar
 from bot.viloyatlar import VILOYAT_TARTIBI
 
-MAQSADLAR = {
-    "organish": "📚 Namozni o'rganish",
-    "vaqt_organish": "🕌 Namoz vaqtlari va o'rganish",
-    "vaqt": "⏰ Faqat namoz vaqtlari",
-    "erkin": "🔍 Hammasidan bir oz (erkin)",
-}
-
-
-def maqsad_klaviaturasi() -> InlineKeyboardMarkup:
-    b = InlineKeyboardBuilder()
-    for kalit, nom in MAQSADLAR.items():
-        b.button(text=nom, callback_data=f"maqsad:{kalit}")
-    b.adjust(1)
-    return b.as_markup()
-
 
 def viloyat_klaviaturasi(prefix: str = "viloyat") -> InlineKeyboardMarkup:
     """Barcha viloyatlarni teng huquqli, alifbo emas — bir xil formatda ko'rsatadi."""

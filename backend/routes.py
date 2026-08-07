@@ -3,7 +3,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 
-from backend.dependencies import joriy_foydalanuvchi
+from backend.dependencies import joriy_foydalanuvchi_ixtiyoriy
 from bot.db.connection import async_session
 from bot.db.models import Foydalanuvchi, NamozVaqti, Shahar, Sura
 from bot.services.qibla_xizmat import shahar_boyicha
@@ -71,15 +71,23 @@ async def vaqtlar(shahar_id: int = Query(...)) -> dict:
 
 
 @router.get("/foydalanuvchi")
-async def foydalanuvchi_profil(tg_user: dict = Depends(joriy_foydalanuvchi)) -> dict:
+async def foydalanuvchi_profil(
+    tg_user: dict | None = Depends(joriy_foydalanuvchi_ixtiyoriy),
+) -> dict:
+    # Telegram tashqarisida ochilgan bo'lsa — mehmon rejimi. Frontend
+    # shaharni qurilma xotirasidan oladi va serverga hech narsa yozmaydi.
+    if tg_user is None:
+        return {"mehmon": True, "royxatdan_otganmi": False}
+
     async with async_session() as s:
         natija = await s.execute(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == tg_user["id"]))
         f = natija.scalar_one_or_none()
 
     if not f:
-        return {"royxatdan_otganmi": False}
+        return {"mehmon": False, "royxatdan_otganmi": False}
 
     return {
+        "mehmon": False,
         "royxatdan_otganmi": True,
         "shahar_id": f.shahar_id,
         "maqsad": f.maqsad,

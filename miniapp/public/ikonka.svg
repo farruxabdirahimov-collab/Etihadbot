@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="fon" cx="50%" cy="0%" r="120%">
+      <stop offset="0%" stop-color="#16311B"/>
+      <stop offset="72%" stop-color="#0A1A0D"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#fon)"/>
+
+  <!-- Qolgan vaqt halqasi — ilovaning asosiy belgisi -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#93A38C" stroke-width="6" opacity="0.28"/>
+  <path d="M 256 88 A 168 168 0 1 1 106 344"
+        fill="none" stroke="#C9A961" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Hilol -->
+  <path d="M 300 168 A 96 96 0 1 0 300 344 A 78 78 0 1 1 300 168 Z" fill="#F2EDE0"/>
+</svg>

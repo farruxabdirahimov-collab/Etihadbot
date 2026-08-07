@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from backend.dependencies import joriy_foydalanuvchi
+from backend.dependencies import joriy_foydalanuvchi, joriy_foydalanuvchi_ixtiyoriy
 from bot.db.connection import async_session
 from bot.db.models import Foydalanuvchi
 from bot.services.eslatma_xizmat import bitta_foydalanuvchi_uchun_reja
@@ -37,7 +37,9 @@ class SozlamaYangilash(BaseModel):
 
 
 @router.get("/sozlamalar")
-async def sozlamalarni_ol(tg_user: dict = Depends(joriy_foydalanuvchi)) -> dict:
+async def sozlamalarni_ol(tg_user: dict | None = Depends(joriy_foydalanuvchi_ixtiyoriy)) -> dict:
+    if tg_user is None:
+        return {"mehmon": True, "royxatdan_otganmi": False}
     f = await olish(tg_user["id"])
     if not f:
         return {"royxatdan_otganmi": False}
@@ -61,7 +63,10 @@ async def sozlamalarni_yangila(
     async with async_session() as s:
         f = await s.scalar(select(Foydalanuvchi).where(Foydalanuvchi.telegram_id == telegram_id))
         if not f:
-            return {"royxatdan_otganmi": False}
+            # Ro'yxatdan o'tish endi Mini App ichida bo'ladi — foydalanuvchi
+            # shaharni birinchi marta tanlaganda yozuvi shu yerda yaratiladi.
+            f = Foydalanuvchi(telegram_id=telegram_id)
+            s.add(f)
 
         if body.shahar_id is not None:
             f.shahar_id = body.shahar_id

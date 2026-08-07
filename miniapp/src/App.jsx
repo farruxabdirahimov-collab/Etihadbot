@@ -3,6 +3,7 @@ import { api } from "./api.js";
 import BildirishnomaOyna from "./components/BildirishnomaOyna.jsx";
 import BoshEkran from "./components/BoshEkran.jsx";
 import FikrOyna from "./components/FikrOyna.jsx";
+import IlkTanlov from "./components/IlkTanlov.jsx";
 import QiblaOyna from "./components/QiblaOyna.jsx";
 import QoidaOyna from "./components/QoidaOyna.jsx";
 import ShaharTanlashOyna from "./components/ShaharTanlashOyna.jsx";
@@ -10,15 +11,27 @@ import SozlamaOyna from "./components/SozlamaOyna.jsx";
 import SuraOyna from "./components/SuraOyna.jsx";
 import SuraRoyxati from "./components/SuraRoyxati.jsx";
 import { joriyHolatniHisobla, rangniAniqla } from "./hisoblash.js";
-import { telegramniTayyorla, ulashishniOch } from "./telegram.js";
-import { UTIL } from "./theme.js";
+import * as saqlash from "./saqlash.js";
+import { telegramdami, telegramniTayyorla, ulashishniOch } from "./telegram.js";
+import { PALETTE, UTIL } from "./theme.js";
 
 const TAVSIYA_MATNI =
-  "Namoz vaqtlari va namozni o'rganish uchun «Etihat — E'tiqod» botini tavsiya qilaman.";
+  "Namoz vaqtlari va namozni o'rganish uchun «Etihat — E'tiqod» ilovasini tavsiya qilaman.";
+
+// Mehmon rejimida bildirishnoma yo'q — u faqat Telegram orqali beriladi.
+const MEHMON_SOZLAMALARI = {
+  eslatma_yoqilgan: false,
+  eslatma_namozlar: [],
+  eslatma_daqiqa: 10,
+  eslatma_tugash_yoqilgan: false,
+  eslatma_tugash_daqiqa: 15,
+};
 
 export default function App() {
-  const [holat, setHolat] = useState("yuklanmoqda"); // yuklanmoqda | royxatsiz | tayyor | xato
-  const [foydalanuvchi, setFoydalanuvchi] = useState(null);
+  const [holat, setHolat] = useState("yuklanmoqda"); // yuklanmoqda | ilk_tanlov | tayyor | xato
+  const [mehmon, setMehmon] = useState(false);
+  const [shaharId, setShaharId] = useState(null);
+  const [daraja, setDaraja] = useState("boshlangich");
   const [vaqtlar, setVaqtlar] = useState(null);
   const [suralar, setSuralar] = useState([]);
   const [sozlamalar, setSozlamalar] = useState(null);
@@ -26,31 +39,37 @@ export default function App() {
   const [qibla, setQibla] = useState(null);
   const [botUsername, setBotUsername] = useState("");
   const [hozir, setHozir] = useState(new Date());
-  // null | 'royxat' | 'sura' | 'qoida' | 'sozlama' | 'shahar' | 'bildirishnoma'
   const [modal, setModal] = useState(null);
   const [suraTanlangan, setSuraTanlangan] = useState(null);
 
   useEffect(() => {
     telegramniTayyorla();
     (async () => {
+      const tgda = telegramdami();
+      setMehmon(!tgda);
       try {
-        const f = await api.foydalanuvchi();
-        if (!f.royxatdan_otganmi || !f.shahar_id) {
-          setHolat("royxatsiz");
+        let boshlangichShahar = null;
+        if (tgda) {
+          const f = await api.foydalanuvchi();
+          boshlangichShahar = f.shahar_id ?? null;
+          setDaraja(f.daraja ?? "boshlangich");
+          setSozlamalar(f.royxatdan_otganmi ? await api.sozlamalar() : null);
+        } else {
+          const mahalliy = saqlash.ol();
+          boshlangichShahar = mahalliy.shahar_id;
+          setDaraja(mahalliy.daraja);
+          setSozlamalar({ ...MEHMON_SOZLAMALARI });
+        }
+
+        const [vil, ilova] = await Promise.all([api.viloyatlar(), api.ilova()]);
+        setViloyatlar(vil);
+        setBotUsername(ilova.bot_username);
+
+        if (!boshlangichShahar) {
+          setHolat("ilk_tanlov");
           return;
         }
-        setFoydalanuvchi(f);
-        const [v, s, soz, vil, q, ilova] = await Promise.all([
-          api.vaqtlar(f.shahar_id), api.suralar(), api.sozlamalar(),
-          api.viloyatlar(), api.qibla(f.shahar_id), api.ilova(),
-        ]);
-        setVaqtlar(v);
-        setSuralar(s);
-        setSozlamalar(soz);
-        setViloyatlar(vil);
-        setQibla(q);
-        setBotUsername(ilova.bot_username);
-        setHolat(v.topildi ? "tayyor" : "xato");
+        await shaharMalumotlariniYukla(boshlangichShahar);
       } catch {
         setHolat("xato");
       }
@@ -62,6 +81,15 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
+  async function shaharMalumotlariniYukla(id) {
+    const [v, s, q] = await Promise.all([api.vaqtlar(id), api.suralar(), api.qibla(id)]);
+    setShaharId(id);
+    setVaqtlar(v);
+    setSuralar(s);
+    setQibla(q);
+    setHolat(v.topildi ? "tayyor" : "xato");
+  }
+
   async function ochSura(qisqaMalumot) {
     setSuraTanlangan(qisqaMalumot);
     setModal("sura");
@@ -71,27 +99,37 @@ export default function App() {
 
   async function sozlamaniYangila(patch) {
     setSozlamalar((oldi) => ({ ...oldi, ...patch }));
-    await api.sozlamalarniYangila(patch);
+    if (!mehmon) await api.sozlamalarniYangila(patch);
   }
 
   async function shaharniTanlash(sh) {
-    await sozlamaniYangila({ shahar_id: sh.id });
-    const [yangiVaqtlar, yangiQibla] = await Promise.all([api.vaqtlar(sh.id), api.qibla(sh.id)]);
-    setVaqtlar(yangiVaqtlar);
-    setQibla(yangiQibla);
-    setModal("sozlama");
+    if (mehmon) {
+      saqlash.yoz({ shahar_id: sh.id });
+    } else {
+      await api.sozlamalarniYangila({ shahar_id: sh.id });
+      setSozlamalar((oldi) => ({ ...(oldi ?? MEHMON_SOZLAMALARI), shahar_id: sh.id }));
+    }
+    await shaharMalumotlariniYukla(sh.id);
+    setModal(holat === "ilk_tanlov" ? null : "sozlama");
   }
 
   function ulash() {
+    const havola = botUsername ? `https://t.me/${botUsername}` : window.location.origin;
+    ulashishniOch(havola, TAVSIYA_MATNI);
+  }
+
+  function botniOch() {
     if (!botUsername) return;
-    ulashishniOch(`https://t.me/${botUsername}`, TAVSIYA_MATNI);
+    window.open(`https://t.me/${botUsername}`, "_blank");
   }
 
   const svetoforHolati = vaqtlar ? joriyHolatniHisobla(vaqtlar, hozir) : null;
   const qolganSoniya = svetoforHolati?.chegaraVaqt
     ? Math.max(0, Math.round((svetoforHolati.chegaraVaqt - hozir) / 1000))
     : null;
-  const r = rangniAniqla(qolganSoniya);
+  // Vaqtlar hali yuklanmagan ekranlarda (yuklanish, ilk tanlov) svetofor
+  // rangi ma'nosiz — tinch yashil fon ishlatiladi.
+  const r = vaqtlar ? rangniAniqla(qolganSoniya) : PALETTE.yashil;
 
   return (
     <div
@@ -102,16 +140,18 @@ export default function App() {
       }}
     >
       {holat === "yuklanmoqda" && <XabarEkrani r={r} matn="Yuklanmoqda..." />}
-      {holat === "xato" && <XabarEkrani r={r} matn="Ma'lumot yuklanmadi. Iltimos, keyinroq qayta urinib ko'ring." />}
-      {holat === "royxatsiz" && (
-        <XabarEkrani r={r} matn={"Avval Telegram botda /start buyrug'i orqali ro'yxatdan o'ting, so'ng shahringizni tanlang."} />
+      {holat === "xato" && (
+        <XabarEkrani r={r} matn="Ma'lumot yuklanmadi. Internetni tekshirib, sahifani yangilang." />
+      )}
+      {holat === "ilk_tanlov" && (
+        <IlkTanlov r={r} viloyatlar={viloyatlar} tanlash={shaharniTanlash} />
       )}
 
       {holat === "tayyor" && vaqtlar && (
         <BoshEkran
           vaqtlar={vaqtlar}
           hozir={hozir}
-          daraja={foydalanuvchi?.daraja ?? "boshlangich"}
+          daraja={daraja}
           suralar={suralar}
           qibla={qibla}
           ochRoyxat={() => setModal("royxat")}
@@ -148,15 +188,17 @@ export default function App() {
         <QiblaOyna r={r} qibla={qibla} yop={() => setModal(null)} />
       )}
 
-      {modal === "sozlama" && sozlamalar && (
+      {modal === "sozlama" && (
         <SozlamaOyna
           r={r}
           shaharNomi={vaqtlar?.shahar ?? "—"}
           sozlamalar={sozlamalar}
+          mehmon={mehmon}
           yop={() => setModal(null)}
           ochShahar={() => setModal("shahar")}
           ochBildirishnoma={() => setModal("bildirishnoma")}
           ochFikr={() => setModal("fikr")}
+          botniOch={botniOch}
         />
       )}
       {modal === "fikr" && <FikrOyna r={r} yop={() => setModal("sozlama")} />}

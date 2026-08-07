@@ -15,6 +15,12 @@ export function initDataOl() {
   return webApp()?.initData ?? "";
 }
 
+/** Telegram ichida ochilganmi? initData imzolangan ma'lumot bo'lgani
+ * uchun uning mavjudligi ishonchli belgi — oddiy brauzerda u bo'sh. */
+export function telegramdami() {
+  return Boolean(initDataOl());
+}
+
 export function foydalanuvchiIdOl() {
   return webApp()?.initDataUnsafe?.user?.id ?? null;
 }

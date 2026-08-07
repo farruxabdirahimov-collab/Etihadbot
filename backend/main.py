@@ -20,17 +20,18 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+# Nomi o'zgarmaydigan, lekin mazmuni o'zgarishi mumkin bo'lgan fayllar.
+# Vite build'i JS fayl nomiga hash qo'shadi (index-XXXX.js) — ular
+# xavfsiz keshlanadi, chunki o'zgarsa nomi ham o'zgaradi. Quyidagilar
+# esa keshda qolsa yangilanish yetib bormaydi: index.html eski JS'ga
+# ishora qilib qoladi, sw.js eski kesh qoidalarini saqlab qoladi.
+_KESHLANMAYDIGAN = {"index.html", ".", "", "sw.js", "manifest.json"}
+
+
 class KeshsizStatik(StaticFiles):
-    """index.html hech qachon keshlanmasin.
-
-    Vite build'i JS fayl nomiga hash qo'shadi (index-XXXX.js), shuning
-    uchun ularni uzoq keshlash xavfsiz. Lekin index.html o'sha hash'ga
-    ishora qiladi — u keshda qolsa, yangi deploy'dan keyin ham Telegram
-    WebView eski JS'ni yuklashda davom etadi."""
-
     async def get_response(self, path, scope):
         javob = await super().get_response(path, scope)
-        if path in ("index.html", ".", "") or path.endswith(".html"):
+        if path in _KESHLANMAYDIGAN or path.endswith(".html"):
             javob.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
             javob.headers["Pragma"] = "no-cache"
             javob.headers["Expires"] = "0"
